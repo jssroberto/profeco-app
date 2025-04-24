@@ -1,0 +1,26 @@
+import React from "react";
+import PopularSupermarkets from "../components/PopularSupermarkets";
+import SearchBar from "../components/Searchbar";
+
+const Negocios: React.FC = () => {
+  return (
+    <div className="pt-26 px-4 sm:px-6 lg:px-8 min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto">
+        {/* Search bar */}
+        <SearchBar 
+          context="negocios"
+          placeholder="Buscar supermercados..."
+        />
+
+        {/* Section #1: supermerados populares */}
+        <div className="w-full max-w-5xl">
+          <PopularSupermarkets />
+        </div>
+
+        {/* Section #2 : more supermarkets */}
+      </div>
+    </div>
+  );
+};
+
+export default Negocios;
