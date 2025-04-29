@@ -1,5 +1,7 @@
 package com.itson.profeco.entities;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,35 +13,28 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@Entity(name = "products")
-public class Product {
+@Entity(name = "ratings")
+public class Rating {
     
     @Id
     @GeneratedValue
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
-    private String id;
-
-    @Column(nullable = false, length = 50)
-    private String name;
-
-    @Column(nullable = false, length = 30)
-    private String category;
-
-    @Column(nullable = false, length = 250)
-    private String brand;
+    private String uuid;
 
     @Column(nullable = false)
-    private Double price;
+    private Integer score;
+
+    @Column(length = 250, nullable = false)
+    private String comment;
+
+    @Column(nullable = false)
+    private LocalDate date;
 
     @ManyToOne()
     @JoinColumn(name = "store_id")
     private Store store;
 
-    public Product(String name, String category, String brand, Double price, Store store) {
-        this.name = name;
-        this.category = category;
-        this.brand = brand;
-        this.price = price;
-        this.store = store;
-    }
+    @ManyToOne()
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 }

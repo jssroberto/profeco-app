@@ -1,5 +1,6 @@
 package com.itson.profeco.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.Column;
@@ -8,10 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @Entity(name = "stores")
 public class Store {
     
@@ -28,4 +27,19 @@ public class Store {
 
     @OneToMany(mappedBy = "store")
     private List<Product> products;
+
+    @OneToMany(mappedBy = "store")
+    private List<Rating> ratings;
+
+    public Store() {
+        this.products = new ArrayList<>();
+        this.ratings = new ArrayList<>();
+    }
+
+    public Store(String name, String location, List<Product> products, List<Rating> ragints) {
+        this.name = name;
+        this.location = location;
+        this.products = products;
+        this.ratings = ragints;
+    }
 }
