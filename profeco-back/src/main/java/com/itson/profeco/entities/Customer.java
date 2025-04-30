@@ -28,8 +28,12 @@ public class Customer {
     @OneToMany(mappedBy = "customer")
     private List<Rating> ratings;
 
+    @OneToMany(mappedBy = "customer")
+    private List<Inconsistency> inconsistencies;
+
     public Customer() {
         this.ratings = new ArrayList<>();
+        this.inconsistencies = new ArrayList<>();
     }
 
     public Customer(String name, String email, List<Rating> ratings) {

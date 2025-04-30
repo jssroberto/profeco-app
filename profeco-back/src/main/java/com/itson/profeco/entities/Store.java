@@ -31,15 +31,20 @@ public class Store {
     @OneToMany(mappedBy = "store")
     private List<Rating> ratings;
 
+    @OneToMany(mappedBy = "store")
+    private List<Inconsistency> inconsistencies;
+
     public Store() {
         this.products = new ArrayList<>();
         this.ratings = new ArrayList<>();
+        this.inconsistencies = new ArrayList<>();
     }
 
-    public Store(String name, String location, List<Product> products, List<Rating> ragints) {
+    public Store(String name, String location, List<Product> products, List<Rating> ragints, List<Inconsistency> inconsistencies) {
         this.name = name;
         this.location = location;
         this.products = products;
         this.ratings = ragints;
+        this.inconsistencies = inconsistencies;
     }
 }
