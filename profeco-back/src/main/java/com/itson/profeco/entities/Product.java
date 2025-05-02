@@ -40,16 +40,21 @@ public class Product {
     @OneToMany(mappedBy = "product")
     private List<Inconsistency> inconsistencies;
 
+    @OneToMany(mappedBy = "product")
+    private List<Wish> wishs;
+
     public Product() {
         this.inconsistencies = new ArrayList<>();
+        this.wishs = new ArrayList<>();
     }
 
-    public Product(String name, String category, String brand, Double price, Store store, List<Inconsistency> inconsistencies) {
+    public Product(String name, String category, String brand, Double price, Store store, List<Inconsistency> inconsistencies, List<Wish> wishs) {
         this.name = name;
         this.category = category;
         this.brand = brand;
         this.price = price;
         this.store = store;
         this.inconsistencies = inconsistencies;
+        this.wishs = wishs;
     }
 }

@@ -7,6 +7,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
 
@@ -34,17 +36,22 @@ public class Store {
     @OneToMany(mappedBy = "store")
     private List<Inconsistency> inconsistencies;
 
+    @OneToMany(mappedBy = "store")
+    private List<Wish> wishs;
+
     public Store() {
         this.products = new ArrayList<>();
         this.ratings = new ArrayList<>();
         this.inconsistencies = new ArrayList<>();
+        this.wishs = new ArrayList<>();
     }
 
-    public Store(String name, String location, List<Product> products, List<Rating> ragints, List<Inconsistency> inconsistencies) {
+    public Store(String name, String location, List<Product> products, List<Rating> ragints, List<Inconsistency> inconsistencies, List<Wish> wishs) {
         this.name = name;
         this.location = location;
         this.products = products;
         this.ratings = ragints;
         this.inconsistencies = inconsistencies;
+        this.wishs = wishs;
     }
 }

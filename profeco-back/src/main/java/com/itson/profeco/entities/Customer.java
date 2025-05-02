@@ -31,14 +31,19 @@ public class Customer {
     @OneToMany(mappedBy = "customer")
     private List<Inconsistency> inconsistencies;
 
+    @OneToMany(mappedBy = "customer")
+    private List<Wish> wishs;
+
     public Customer() {
         this.ratings = new ArrayList<>();
         this.inconsistencies = new ArrayList<>();
+        this.wishs = new ArrayList<>();
     }
 
-    public Customer(String name, String email, List<Rating> ratings) {
+    public Customer(String name, String email, List<Rating> ratings, List<Wish> wishs) {
         this.name = name;
         this.email = email;
         this.ratings = ratings;
+        this.wishs = wishs;
     }
 }
