@@ -1,23 +1,31 @@
-package com.itson.profeco.entities;
+package com.itson.profeco.model;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
-@Entity(name = "inconsistencies")
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Inconsistency {
-    
+
     @Id
-    @GeneratedValue
-    @Column(columnDefinition = "uuid",  updatable = false, nullable = false)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false, updatable = false)
+    private UUID id;
 
     @Column(nullable = false)
     private Double publishedPrice;
@@ -28,19 +36,18 @@ public class Inconsistency {
     @Column(nullable = false)
     private LocalDate date;
 
-    // TODO: We need to work on how we're going to manage the states
-    // TODO: because I'm not convinced by the idea of doing it because
-    // TODO: Roberto's balls are swollen...
+    @ManyToOne
+    private InconsistencyStatus status;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "store_id")
     private Store store;
 }
