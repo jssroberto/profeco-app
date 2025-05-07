@@ -29,3 +29,16 @@ To run this application using Docker, ensure you have Docker and Docker Compose 
 *   `profeco-back`: Contains the Spring Boot backend application.
 *   `compose.yaml`: Docker Compose file to orchestrate the services.
 *   `.env`: Environment variables for Docker Compose (you need to create this).
+
+## Development Workflow
+
+### Backend Auto-Restart
+
+When running the application with Docker Compose, the backend service (`profeco-back`) is configured for live reloading. If you make changes to the backend Java code and then run:
+
+```bash
+cd profeco-back
+mvn clean compile
+```
+
+The Docker container for the backend will automatically detect these changes, stop the currently running Spring Boot application, and restart it with the new compiled code. This allows for a faster development cycle without needing to manually rebuild or restart the Docker container.
