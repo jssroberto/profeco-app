@@ -8,7 +8,6 @@ import ProductInfo from './pages/ProductInfo';
 import NegocioInfo from './pages/NegocioInfo';
 import ReportInconsistency from './pages/ReportInconsistency';
 
-
 function App() {
 
   return (

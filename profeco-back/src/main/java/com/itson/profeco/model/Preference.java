@@ -45,6 +45,4 @@ public class Preference {
             inverseJoinColumns = @JoinColumn(name = "product_id"))
     private Set<Product> shoppingList = new HashSet<>();
 
-
-
 }
