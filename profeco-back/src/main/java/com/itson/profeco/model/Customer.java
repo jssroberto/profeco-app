@@ -33,6 +33,8 @@ public class Customer {
     @Column(nullable = false, length = 250, unique = true)
     private String email;
 
+    @Column(nullable = false, length = 50)
+    private String password;
     
     @OneToOne(mappedBy = "customer")
     private Preference preference;
@@ -45,4 +47,5 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer")
     private List<Wish> wishes = new ArrayList<>();
+    
 }
