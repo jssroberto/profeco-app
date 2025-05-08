@@ -1,6 +1,6 @@
 package com.itson.profeco.api.dto.response;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,10 +21,10 @@ public class CustomerResponse {
 
     private UUID preferenceId;
 
-    private List<UUID> ratingIds;
+    private Set<UUID> ratingsIds;
 
-    private List<UUID> inconsistencyIds;
+    private Set<UUID> inconsistenciesIds;
 
-    private List<UUID> wishIds;
+    private Set<UUID> wishesIds;
 
 }
