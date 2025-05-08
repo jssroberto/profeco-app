@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,6 +32,10 @@ public class Customer {
 
     @Column(nullable = false, length = 250, unique = true)
     private String email;
+
+    
+    @OneToOne(mappedBy = "customer")
+    private Preference preference;
 
     @OneToMany(mappedBy = "customer")
     private List<Rating> ratings = new ArrayList<>();

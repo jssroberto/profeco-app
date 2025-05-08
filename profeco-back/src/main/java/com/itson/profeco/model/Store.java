@@ -33,7 +33,7 @@ public class Store {
     private String location;
 
     @OneToMany(mappedBy = "store")
-    private List<Product> products = new ArrayList<>();
+    private List<StoreProduct> products = new ArrayList<>();
 
     @OneToMany(mappedBy = "store") 
     private List<Rating> ratings = new ArrayList<>();

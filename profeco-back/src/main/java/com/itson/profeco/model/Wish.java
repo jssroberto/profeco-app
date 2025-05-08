@@ -7,7 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,15 +25,12 @@ public class Wish {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @Column(nullable = false)
+    private String description;
 
     @ManyToOne
-    @JoinColumn(name = "store_id")
     private Store store;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id")
     private Customer customer;
 }

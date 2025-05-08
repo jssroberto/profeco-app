@@ -17,20 +17,21 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product {
+public class StoreProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @Column(nullable = false, length = 50)
-    private String name;
+    @Column(nullable = false)
+    private Double price;
+
+    private Double offerPrice;
 
     @ManyToOne
-    private ProductCategory category;
+    private Store store;
 
     @ManyToOne
-    private ProductBrand brand;
-
+    private Product product;
 }
