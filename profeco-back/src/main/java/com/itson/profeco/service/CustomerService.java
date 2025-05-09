@@ -21,7 +21,7 @@ public class CustomerService {
 
     private final CustomerMapper customerMapper;
 
-    private final PasswordEncoder passwordEncoder; // Added PasswordEncoder
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public List<CustomerResponse> getAllUsers() {
@@ -40,7 +40,9 @@ public class CustomerService {
     public CustomerResponse saveCustomer(CustomerRequest customerRequest) {
         Customer customer = customerMapper.toEntity(customerRequest);
         // Encode the password before saving
-        customer.setPassword(passwordEncoder.encode(customerRequest.getPassword()));
+        if (customer.getUser() != null && customerRequest.getPassword() != null) {
+            customer.getUser().setPassword(passwordEncoder.encode(customerRequest.getPassword()));
+        }
         Customer savedCustomer = customerRepository.save(customer);
         return customerMapper.toResponse(savedCustomer);
     }
@@ -62,5 +64,12 @@ public class CustomerService {
             throw new EntityNotFoundException("Customer not found with id: " + id);
         }
         customerRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerResponse getCustomerByEmail(String email) {
+        Customer customer = customerRepository.findByUser_Email(email).orElseThrow(
+                () -> new EntityNotFoundException("Customer not found for user email: " + email));
+        return customerMapper.toResponse(customer);
     }
 }

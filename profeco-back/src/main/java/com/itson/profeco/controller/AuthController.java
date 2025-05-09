@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.itson.profeco.api.dto.request.AuthRequest;
 import com.itson.profeco.api.dto.request.CustomerRequest;
 import com.itson.profeco.api.dto.response.AuthResponse;
+import com.itson.profeco.api.dto.response.CustomerResponse;
 import com.itson.profeco.security.JwtUtil;
 import com.itson.profeco.service.UserDetailsServiceImpl;
 import com.itson.profeco.service.CustomerService;
@@ -35,24 +36,37 @@ public class AuthController {
 
         final UserDetails userDetails =
                 userDetailsService.loadUserByUsername(authRequest.getEmail());
+        
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(new AuthResponse(jwt));
+        CustomerResponse customerResponse = userService.getCustomerByEmail(userDetails.getUsername());
+
+        AuthResponse authResponse = new AuthResponse(
+                jwt,
+                customerResponse.getId(),
+                customerResponse.getEmail(),
+                customerResponse.getName()
+        );
+
+        return ResponseEntity.ok(authResponse);
     }
 
-    @PostMapping("/register")
+    @PostMapping("/register/customer")
     public ResponseEntity<AuthResponse> registerUser(
-            @Valid @RequestBody CustomerRequest userRequest) {
-        userService.saveCustomer(userRequest);
-
-        // Optionally, you can automatically log in the user after registration
-        // and return a JWT token, or just return a success message.
-        // For this example, let's generate a token similar to the login endpoint.
+            @Valid @RequestBody CustomerRequest customerRequest) {
+        CustomerResponse customerResponse = userService.saveCustomer(customerRequest);
 
         final UserDetails userDetails =
-                userDetailsService.loadUserByUsername(userRequest.getEmail());
+                userDetailsService.loadUserByUsername(customerRequest.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(new AuthResponse(jwt));
+        AuthResponse authResponse = new AuthResponse(
+                jwt,
+                customerResponse.getId(),
+                customerResponse.getEmail(),
+                customerResponse.getName()
+        );
+
+        return ResponseEntity.ok(authResponse);
     }
 }

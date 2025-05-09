@@ -1,10 +1,7 @@
 package com.itson.profeco.api.dto.request;
 
-import java.util.Set;
-import java.util.UUID;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,18 +13,18 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomerRequest {
-
-    @NotBlank(message = "Name is required")
-    private String name;
-
+    
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
+    @Size(max = 50, message = "Email should not exceed 50 characters")
     private String email;
-
+    
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters long")
+    @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
+    
+    @NotBlank(message = "Name is required")
+    @Size(max = 50, message = "Name should not exceed 50 characters")
+    private String name;
 
-    @NotEmpty(message = "Preference ID is required")
-    private Set<UUID> rolesIds;
 }

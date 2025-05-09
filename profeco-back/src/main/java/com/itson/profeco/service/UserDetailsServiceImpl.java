@@ -10,20 +10,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import com.itson.profeco.model.Customer;
 import com.itson.profeco.model.Role;
-import com.itson.profeco.repository.CustomerRepository;
+import com.itson.profeco.model.UserEntity;
+import com.itson.profeco.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final CustomerRepository userRepository;
+    private final UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Customer customer = userRepository.findByEmail(email).orElseThrow(
+        UserEntity customer = userRepository.findByEmail(email).orElseThrow(
                 () -> new UsernameNotFoundException("User not found with email: " + email));
 
         return new User(customer.getEmail(), customer.getPassword(),

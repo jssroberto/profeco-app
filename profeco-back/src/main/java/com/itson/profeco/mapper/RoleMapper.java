@@ -11,7 +11,7 @@ public interface RoleMapper {
 
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "customers", ignore = true)
+    @Mapping(target = "users", ignore = true)
     Role toEntity(RoleRequest roleRequest);
 
     RoleResponse toResponse(Role role);

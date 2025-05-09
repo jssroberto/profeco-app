@@ -6,18 +6,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse {
-
-    private String accessToken;
-
+public class StoreAdminResponse {
+    
     private UUID id;
 
     private String email;
 
     private String name;
+
+    private UUID storeId;
 
 }
