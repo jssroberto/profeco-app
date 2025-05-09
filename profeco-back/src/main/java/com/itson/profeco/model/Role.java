@@ -1,6 +1,7 @@
 package com.itson.profeco.model;
 
-import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -8,8 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.ManyToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,27 +20,17 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Rating {
+public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @Column(nullable = false)
-    private Integer score;
+    @Column(nullable = false, length = 50, unique = true)
+    private String name;
 
-    @Column(length = 250, nullable = false)
-    private String comment;
-
-    @Column(nullable = false)
-    private LocalDate date;
-
-    @ManyToOne
-    @JoinColumn(name = "store_id")
-    private Store store;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private Customer customer;
+    @ManyToMany(mappedBy = "roles")
+    private Set<Customer> customers = new HashSet<>();
+    
 }

@@ -1,5 +1,6 @@
 package com.itson.profeco.controller;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 import com.itson.profeco.api.dto.request.CustomerRequest;
 import com.itson.profeco.api.dto.response.CustomerResponse;
 import com.itson.profeco.service.CustomerService;
@@ -36,7 +38,7 @@ public class CustomerController {
             description = "List of customers returned successfully")})
     @GetMapping
     public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
-        List<CustomerResponse> responses = costumerService.getAllCustomers();
+        List<CustomerResponse> responses = costumerService.getAllUsers();
         return ResponseEntity.ok(responses);
     }
 
@@ -45,7 +47,7 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Customer not found")})
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable UUID id) {
-        CustomerResponse response = costumerService.getCustomerById(id);
+        CustomerResponse response = costumerService.getUserById(id);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
@@ -64,16 +66,14 @@ public class CustomerController {
 
     @Operation(summary = "Update customer", description = "Updates an existing customer.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Customer updated successfully"),
+            @ApiResponse(responseCode = "201", description = "Customer updated successfully"),
             @ApiResponse(responseCode = "404", description = "Customer not found")})
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable UUID id,
-            @Valid @RequestBody CustomerRequest customerRequest) {
+            @Valid @RequestBody CustomerRequest customerRequest, UriComponentsBuilder uriBuilder) {
         CustomerResponse response = costumerService.updateCustomer(id, customerRequest);
-        if (response == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(response);
+        URI location = uriBuilder.path("/api/v1/customers/{id}").buildAndExpand(id).toUri();
+        return ResponseEntity.created(location).body(response);
     }
 
     @Operation(summary = "Delete customer", description = "Deletes a customer by their ID.")
