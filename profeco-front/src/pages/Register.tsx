@@ -64,7 +64,6 @@ const Register: React.FC = () => {
 
     } catch (error) {
       console.error('Registration failed:', error);
-      // Handle error (e.g., show message)
     }
   };
 

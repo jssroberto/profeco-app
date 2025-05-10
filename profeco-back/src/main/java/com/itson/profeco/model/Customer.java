@@ -33,6 +33,9 @@ public class Customer {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(nullable = false, length =50)
+    private String email;
+
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private UserEntity user;
