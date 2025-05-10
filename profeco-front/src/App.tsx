@@ -23,7 +23,7 @@ function App() {
           <Route path="/negocios" element={<Negocios />} />
           <Route path='/negocios/:id' element={<NegocioInfo />} />
           <Route path='/productos/:id/reportar' element={<ReportInconsistency />} />
-          <Route path='/register/customer' element={<Register />} />
+          <Route path='/register' element={<Register />} />
           <Route path='/login' element={<Login />} />
         </Routes>
       </main>
