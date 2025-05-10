@@ -7,6 +7,8 @@ import Negocios from './pages/Negocios';
 import ProductInfo from './pages/ProductInfo';
 import NegocioInfo from './pages/NegocioInfo';
 import ReportInconsistency from './pages/ReportInconsistency';
+import Register from './pages/Register';
+import Login from './pages/Login';
 
 function App() {
 
@@ -20,7 +22,9 @@ function App() {
           <Route path="/productos/:id" element={<ProductInfo />} />
           <Route path="/negocios" element={<Negocios />} />
           <Route path='/negocios/:id' element={<NegocioInfo />} />
-          <Route path='productos/:id/reportar' element={<ReportInconsistency />} />
+          <Route path='/productos/:id/reportar' element={<ReportInconsistency />} />
+          <Route path='/register/customer' element={<Register />} />
+          <Route path='/login' element={<Login />} />
         </Routes>
       </main>
     </div>
