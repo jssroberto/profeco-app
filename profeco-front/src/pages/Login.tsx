@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
+
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ email: "", password: "" });
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const validateForm = () => {
     let isValid = true;
@@ -40,6 +44,9 @@ const Login: React.FC = () => {
         email,
         password,
       });
+
+      login(response.data.accessToken);
+      navigate("/")
       
       localStorage.setItem("token", response.data.token);
 

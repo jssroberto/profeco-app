@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { useNavigate } from "react-router"
 
 const Register: React.FC = () => {
+
+  let navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
-    role: 'customer' // 'customer' or 'market_admin'
+    role: 'customer' 
   });
   const [errors, setErrors] = useState({
     email: '',
@@ -17,6 +20,7 @@ const Register: React.FC = () => {
   });
 
   const validateForm = () => {
+
     let isValid = true;
     const newErrors = { email: '', password: '', name: '', role: '' };
 
@@ -62,6 +66,10 @@ const Register: React.FC = () => {
 
       console.log('Registration successful:', response.data);
 
+      // now redirect the user to the home with the access token hehe
+      localStorage.setItem('accessToken', response.data.accessToken);
+
+      navigate('/')
     } catch (error) {
       console.error('Registration failed:', error);
     }
@@ -78,11 +86,10 @@ const Register: React.FC = () => {
         <div className="w-full max-w-md space-y-6">
           <h1 className="text-3xl font-bold mb-6">Create Account</h1>
           
-          {/* Role Selector */}
           <div className="flex border border-gray-300 rounded-lg overflow-hidden mb-6">
             <button
               type="button"
-              className={`flex-1 py-2 px-4 text-center font-medium ${
+              className={`flex-1 py-2 px-4 text-center font-medium cursor-pointer ${
                 formData.role === 'customer' 
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-100 hover:bg-gray-200'
@@ -93,7 +100,7 @@ const Register: React.FC = () => {
             </button>
             <button
               type="button"
-              className={`flex-1 py-2 px-4 text-center font-medium ${
+              className={`flex-1 py-2 px-4 text-center font-medium cursor-pointer ${
                 formData.role === 'market_admin' 
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-100 hover:bg-gray-200'

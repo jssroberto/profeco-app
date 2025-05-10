@@ -1,5 +1,6 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import React from "react";
+import { useAuth } from "../context/AuthContext";
 
 interface LinkItem {
   name: string;
@@ -7,6 +8,15 @@ interface LinkItem {
 }
 
 const Navbar: React.FC = () => {
+
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  }
+
   const location = useLocation();
   const links: LinkItem[] = [
     { name: "Inicio", path: "/" },
@@ -38,12 +48,21 @@ const Navbar: React.FC = () => {
 
           <div>
             <div className="flex max-w-xs">
-              <Link
-                to="/login"
-                className="flex-1 font-semibold text-sm bg-white px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-100"
-              >
-                Iniciar sesion
-              </Link>
+              {isAuthenticated ? (
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 font-semibold text-sm bg-white px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-100"
+                >
+                  Cerrar sesión
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex-1 font-semibold text-sm bg-white px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-100"
+                >
+                  Iniciar sesión
+                </Link>
+              )}
             </div>
           </div>
         </div>
