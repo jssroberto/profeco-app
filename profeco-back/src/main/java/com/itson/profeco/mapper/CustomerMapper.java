@@ -18,7 +18,6 @@ public interface CustomerMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "name", source = "name")
-    @Mapping(target = "email", source = "email") // prueba probando no asustarse porfa
     @Mapping(target = "user.email", source = "email")
     @Mapping(target = "user.password", source = "password")
     @Mapping(target = "user.id", ignore = true)

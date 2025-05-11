@@ -9,4 +9,6 @@ public interface StoreAdminRepository extends JpaRepository<StoreAdmin, UUID> {
 
     Optional<StoreAdmin> findByUser_Id(UUID userId);
 
+    Optional<StoreAdmin> findByUser_Email(String email);
+
 }
