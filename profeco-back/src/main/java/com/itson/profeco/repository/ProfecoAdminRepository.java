@@ -9,4 +9,6 @@ public interface ProfecoAdminRepository extends JpaRepository<ProfecoAdmin, UUID
 
     Optional<ProfecoAdmin> findByUser_Id(UUID userId);
 
+    Optional<ProfecoAdmin> findByUser_Email(String email);
+
 }

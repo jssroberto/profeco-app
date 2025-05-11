@@ -3,6 +3,7 @@ package com.itson.profeco.api.dto.request;
 import java.util.UUID;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,7 +29,7 @@ public class StoreAdminRequest {
     @Size(max = 50, message = "Name should not exceed 50 characters")
     private String name;
 
-    @NotBlank(message = "Store ID is required")
+    @NotNull(message = "Store ID is required")
     private UUID storeId;
 
 }
