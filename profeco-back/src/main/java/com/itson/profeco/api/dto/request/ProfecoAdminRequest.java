@@ -27,6 +27,4 @@ public class ProfecoAdminRequest {
     @Size(max = 50, message = "Name should not exceed 50 characters")
     private String name;
 
-    
-
 }

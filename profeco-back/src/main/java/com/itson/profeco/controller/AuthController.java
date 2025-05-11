@@ -11,12 +11,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.itson.profeco.api.dto.request.AuthRequest;
 import com.itson.profeco.api.dto.request.CustomerRequest;
+import com.itson.profeco.api.dto.request.ProfecoAdminRequest;
 import com.itson.profeco.api.dto.request.StoreAdminRequest;
 import com.itson.profeco.api.dto.response.AuthResponse;
 import com.itson.profeco.api.dto.response.CustomerResponse;
+import com.itson.profeco.api.dto.response.ProfecoAdminResponse;
 import com.itson.profeco.api.dto.response.StoreAdminResponse;
+import com.itson.profeco.mapper.AuthMapper;
 import com.itson.profeco.security.JwtUtil;
 import com.itson.profeco.service.CustomerService;
+import com.itson.profeco.service.ProfecoAdminService;
 import com.itson.profeco.service.StoreAdminService;
 import com.itson.profeco.service.UserDetailsServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +40,8 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final CustomerService userService;
     private final StoreAdminService storeAdminService;
+    private final ProfecoAdminService profecoAdminService;
+    private final AuthMapper authMapper;
 
     @Operation(summary = "Authenticate user and return JWT",
             description = "Authenticates a user with email and password, returns a JWT and user info.",
@@ -54,8 +60,8 @@ public class AuthController {
         CustomerResponse customerResponse =
                 userService.getCustomerByEmail(userDetails.getUsername());
 
-        AuthResponse authResponse = new AuthResponse(jwt, customerResponse.getId(),
-                customerResponse.getEmail(), customerResponse.getName());
+        AuthResponse authResponse = authMapper.fromCustomerResponse(customerResponse);
+        authResponse.setAccessToken(jwt);
 
         return ResponseEntity.ok(authResponse);
     }
@@ -72,8 +78,8 @@ public class AuthController {
                 userDetailsService.loadUserByUsername(customerRequest.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        AuthResponse authResponse = new AuthResponse(jwt, customerResponse.getId(),
-                customerResponse.getEmail(), customerResponse.getName());
+        AuthResponse authResponse = authMapper.fromCustomerResponse(customerResponse);
+        authResponse.setAccessToken(jwt);
 
         return ResponseEntity.ok(authResponse);
     }
@@ -90,8 +96,27 @@ public class AuthController {
                 userDetailsService.loadUserByUsername(storeAdminRequest.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        AuthResponse authResponse = new AuthResponse(jwt, storeAdminResponse.getId(),
-                storeAdminResponse.getEmail(), storeAdminResponse.getName());
+        AuthResponse authResponse = authMapper.fromStoreAdminResponse(storeAdminResponse);
+        authResponse.setAccessToken(jwt);
+
+        return ResponseEntity.ok(authResponse);
+    }
+
+    @Operation(summary = "Register a new profeco admin",
+            description = "Registers a new profeco admin and returns a JWT and user info.",
+            tags = {"Authentication"})
+    @PostMapping("/register/profeco-admin")
+    public ResponseEntity<AuthResponse> registerProfecoAdmin(
+            @Valid @RequestBody ProfecoAdminRequest profecoAdminRequest) {
+        ProfecoAdminResponse profecoAdminResponse =
+                profecoAdminService.saveProfecoAdmin(profecoAdminRequest);
+
+        final UserDetails userDetails =
+                userDetailsService.loadUserByUsername(profecoAdminRequest.getEmail());
+        final String jwt = jwtUtil.generateToken(userDetails);
+
+        AuthResponse authResponse = authMapper.fromProfecoAdminResponse(profecoAdminResponse);
+        authResponse.setAccessToken(jwt);
 
         return ResponseEntity.ok(authResponse);
     }
