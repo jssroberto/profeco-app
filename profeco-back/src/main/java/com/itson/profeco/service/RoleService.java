@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class RoleService {
 
     private final RoleRepository roleRepository;
-    
+
     private final RoleMapper roleMapper;
 
     @Transactional
@@ -30,9 +30,7 @@ public class RoleService {
     @Transactional(readOnly = true)
     public List<RoleResponse> getAllRoles() {
         List<Role> roles = roleRepository.findAll();
-        return roles.stream()
-                .map(roleMapper::toResponse)
-                .toList();
+        return roles.stream().map(roleMapper::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
@@ -40,6 +38,19 @@ public class RoleService {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id));
         return roleMapper.toResponse(role);
+    }
+
+    @Transactional(readOnly = true)
+    public RoleResponse getRoleByName(String name) {
+        Role role = roleRepository.findByName(name).orElseThrow(
+                () -> new EntityNotFoundException("Role not found with name: " + name));
+        return roleMapper.toResponse(role);
+    }
+
+    @Transactional(readOnly = true)
+    public Role getRoleEntityByName(String name) {
+        return roleRepository.findByName(name).orElseThrow(
+                () -> new EntityNotFoundException("Role not found with name: " + name));
     }
 
     @Transactional

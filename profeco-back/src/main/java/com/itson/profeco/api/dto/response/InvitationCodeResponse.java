@@ -10,14 +10,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse {
+public class InvitationCodeResponse {
 
-    private String accessToken;
+    private String code;
 
-    private UUID id;
-
-    private String email;
-
-    private String name;
+    private String roleName;
+    
+    private UUID roleId;
 
 }

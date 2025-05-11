@@ -32,4 +32,7 @@ public class StoreAdminRequest {
     @NotNull(message = "Store ID is required")
     private UUID storeId;
 
+    // @NotBlank(message = "Invitation code is required")
+    // private String invitationCode;
+
 }

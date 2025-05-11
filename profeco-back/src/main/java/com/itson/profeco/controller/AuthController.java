@@ -85,7 +85,7 @@ public class AuthController {
     }
 
     @Operation(summary = "Register a new store admin",
-            description = "Registers a new store admin and returns a JWT and user info.",
+            description = "Registers a new store admin and returns a JWT and user info. Requires a valid invitation code.",
             tags = {"Authentication"})
     @PostMapping("/register/store-admin")
     public ResponseEntity<AuthResponse> registerStoreAdmin(
@@ -103,7 +103,7 @@ public class AuthController {
     }
 
     @Operation(summary = "Register a new profeco admin",
-            description = "Registers a new profeco admin and returns a JWT and user info.",
+            description = "Registers a new profeco admin and returns a JWT and user info. Requires a valid invitation code.",
             tags = {"Authentication"})
     @PostMapping("/register/profeco-admin")
     public ResponseEntity<AuthResponse> registerProfecoAdmin(

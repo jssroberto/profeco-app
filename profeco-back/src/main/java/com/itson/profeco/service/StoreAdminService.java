@@ -1,6 +1,7 @@
 package com.itson.profeco.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.itson.profeco.api.dto.request.StoreAdminRequest;
 import com.itson.profeco.api.dto.response.StoreAdminResponse;
 import com.itson.profeco.mapper.StoreAdminMapper;
+import com.itson.profeco.model.Role;
 import com.itson.profeco.model.Store;
 import com.itson.profeco.model.StoreAdmin;
 import com.itson.profeco.model.UserEntity;
@@ -22,6 +24,9 @@ public class StoreAdminService {
     private final StoreAdminRepository storeAdminRepository;
     private final StoreAdminMapper storeAdminMapper;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final RoleService roleService;
+
+    private static final String DEFAULT_USER_ROLE = "STORE_ADMIN";
 
     @Transactional(readOnly = true)
     public List<StoreAdminResponse> getAllStoreAdmins() {
@@ -39,12 +44,17 @@ public class StoreAdminService {
     @Transactional
     public StoreAdminResponse saveStoreAdmin(StoreAdminRequest storeAdminRequest) {
         StoreAdmin storeAdmin = storeAdminMapper.toEntity(storeAdminRequest);
+        UserEntity user = storeAdmin.getUser();
 
         // Encode the password before saving
-        if (storeAdmin.getUser() != null && storeAdmin.getUser().getPassword() != null) {
-            storeAdmin.getUser()
-                    .setPassword(passwordEncoder.encode(storeAdmin.getUser().getPassword()));
+        if (user != null && storeAdminRequest.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(storeAdminRequest.getPassword()));
+        } else if (user == null) {
+            throw new IllegalStateException("User entity was not created for store admin.");
         }
+
+        Role defaultRole = roleService.getRoleEntityByName(DEFAULT_USER_ROLE);
+        user.setRoles(Set.of(defaultRole));
 
         StoreAdmin savedStoreAdmin = storeAdminRepository.save(storeAdmin);
         return storeAdminMapper.toResponse(savedStoreAdmin);
@@ -59,8 +69,6 @@ public class StoreAdminService {
 
         UserEntity user = storeAdmin.getUser();
         if (user == null) {
-            // This case might indicate an inconsistency or a need for different handling
-            // For now, we assume a user always exists for a store admin.
             throw new IllegalStateException("User entity not found for StoreAdmin with id: " + id);
         }
 
@@ -75,7 +83,7 @@ public class StoreAdminService {
             store.setId(storeAdminRequest.getStoreId());
             storeAdmin.setStore(store);
         } else {
-            storeAdmin.setStore(null); // Or handle as per business logic, e.g., disallow unsetting
+            storeAdmin.setStore(null);
         }
 
         StoreAdmin updatedStoreAdmin = storeAdminRepository.save(storeAdmin);

@@ -1,14 +1,17 @@
 package com.itson.profeco.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // Changed import
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.itson.profeco.api.dto.request.CustomerRequest;
 import com.itson.profeco.api.dto.response.CustomerResponse;
 import com.itson.profeco.mapper.CustomerMapper;
 import com.itson.profeco.model.Customer;
+import com.itson.profeco.model.Role;
+import com.itson.profeco.model.UserEntity;
 import com.itson.profeco.repository.CustomerRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +21,11 @@ import lombok.RequiredArgsConstructor;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
-
     private final CustomerMapper customerMapper;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final RoleService roleService;
 
-    private final BCryptPasswordEncoder passwordEncoder; 
+    private static final String DEFAULT_USER_ROLE = "CUSTOMER";
 
     @Transactional(readOnly = true)
     public List<CustomerResponse> getAllUsers() {
@@ -39,12 +43,20 @@ public class CustomerService {
     @Transactional
     public CustomerResponse saveCustomer(CustomerRequest customerRequest) {
         Customer customer = customerMapper.toEntity(customerRequest);
-        // Encode the password before saving
-        if (customer.getUser() != null && customerRequest.getPassword() != null) {
-            customer.getUser().setPassword(passwordEncoder.encode(customerRequest.getPassword()));
+        UserEntity user = customer.getUser();
+
+        if (user != null && customerRequest.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(customerRequest.getPassword()));
+        } else if (user == null) {
+            throw new IllegalStateException("User entity was not created for customer.");
         }
+
+        Role defaultRole = roleService.getRoleEntityByName(DEFAULT_USER_ROLE);
+        user.setRoles(Set.of(defaultRole));
+
         Customer savedCustomer = customerRepository.save(customer);
         return customerMapper.toResponse(savedCustomer);
+
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 package com.itson.profeco.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,8 @@ import com.itson.profeco.api.dto.request.ProfecoAdminRequest;
 import com.itson.profeco.api.dto.response.ProfecoAdminResponse;
 import com.itson.profeco.mapper.ProfecoAdminMapper;
 import com.itson.profeco.model.ProfecoAdmin;
+import com.itson.profeco.model.Role;
+import com.itson.profeco.model.UserEntity;
 import com.itson.profeco.repository.ProfecoAdminRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,9 @@ public class ProfecoAdminService {
     private final ProfecoAdminRepository profecoAdminRepository;
     private final ProfecoAdminMapper profecoAdminMapper;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final RoleService roleService;
+
+    private static final String DEFAULT_USER_ROLE = "PROFECO_ADMIN";
 
     @Transactional(readOnly = true)
     public List<ProfecoAdminResponse> getAllProfecoAdmins() {
@@ -37,11 +43,18 @@ public class ProfecoAdminService {
     @Transactional
     public ProfecoAdminResponse saveProfecoAdmin(ProfecoAdminRequest profecoAdminRequest) {
         ProfecoAdmin profecoAdmin = profecoAdminMapper.toEntity(profecoAdminRequest);
+        UserEntity user = profecoAdmin.getUser();
+
         // Encode the password before saving
-        if (profecoAdmin.getUser() != null && profecoAdminRequest.getPassword() != null) {
-            profecoAdmin.getUser()
-                    .setPassword(passwordEncoder.encode(profecoAdminRequest.getPassword()));
+        if (user != null && profecoAdminRequest.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(profecoAdminRequest.getPassword()));
+        } else if (user == null) {
+            throw new IllegalStateException("User entity was not created for profeco admin.");
         }
+
+        Role defaultRole = roleService.getRoleEntityByName(DEFAULT_USER_ROLE);
+        user.setRoles(Set.of(defaultRole));
+
         ProfecoAdmin savedProfecoAdmin = profecoAdminRepository.save(profecoAdmin);
         return profecoAdminMapper.toResponse(savedProfecoAdmin);
     }
