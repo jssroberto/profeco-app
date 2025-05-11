@@ -1,5 +1,5 @@
 import React from "react";
-import PopularSupermarkets from "../components/PopularSupermarkets";
+import SearchSupermarkets from "../components/SearchSupermarkets";
 import SearchBar from "../components/Searchbar";
 
 const Negocios: React.FC = () => {
@@ -14,7 +14,7 @@ const Negocios: React.FC = () => {
 
         {/* Section #1: supermerados populares */}
         <div className="w-full max-w-5xl">
-          <PopularSupermarkets />
+          <SearchSupermarkets />
         </div>
 
         {/* Section #2 : more supermarkets */}

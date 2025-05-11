@@ -60,10 +60,10 @@ const Login: React.FC = () => {
     <div className="flex min-h-screen">
       <div className="w-full md:w-1/2 flex items-center justify-center p-10">
         <div className="w-full max-w-md space-y-6">
-          <h1 className="text-3xl font-bold mb-12">Inicio de Sesión</h1>
+          <h1 className="text-3xl font-bold mb-12 select-none">Inicio de Sesión</h1>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 select-none">
                 Email
               </label>
               <input
@@ -81,7 +81,7 @@ const Login: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 select-none">
                 Contraseña
               </label>
               <input
@@ -106,7 +106,7 @@ const Login: React.FC = () => {
             </button>
           </form>
 
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-sm text-gray-600 text-center select-none">
             No tienes una cuenta?{" "}
             <Link to="/register" className="text-blue-600 hover:underline">
               Registrarme

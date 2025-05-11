@@ -4,7 +4,7 @@ interface BusinessHeaderProps {
   name: string;
   image: string;
   rating: number;
-  totalRatings: number;
+  reviews: number;
   description: string;
   isFavorite: boolean;
   onToggleFavorite: () => void;
@@ -14,7 +14,7 @@ const BusinessHeader = ({
   name,
   image,
   rating,
-  totalRatings,
+  reviews,
   description,
   isFavorite,
   onToggleFavorite
@@ -47,7 +47,7 @@ const BusinessHeader = ({
                 ))}
               </div>
               <span className="text-gray-600">
-                {rating.toFixed(1)} ({totalRatings} calificaciones)
+                {rating.toFixed(1)} ({reviews} calificaciones)
               </span>
             </div>
           </div>

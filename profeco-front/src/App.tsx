@@ -9,6 +9,7 @@ import NegocioInfo from "./pages/NegocioInfo";
 import ReportInconsistency from "./pages/ReportInconsistency";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -18,17 +19,17 @@ function App() {
     <AuthProvider>
         <div className="flex flex-col h-screen w-screen">
       <Navbar />
-      <main className="flex-1 bg-white">
+      <main className="flex-1 bg-white w-full overflow-x-hidden">
         <Routes>
           {/* protected routes, only with token */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/productos" element={<Productos />} />
-            <Route path="/productos/:id" element={<ProductInfo />} />
+            <Route path="/productos/:id/:tienda" element={<ProductInfo />} />
             <Route path="/negocios" element={<Negocios />} />
             <Route path="/negocios/:id" element={<NegocioInfo />} />
-            <Route path="/productos/:id/reportar" element={<ReportInconsistency />}
-            />
+            <Route path="/productos/:id/:tienda/reportar" element={<ReportInconsistency />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
 
           {/* public routes */}

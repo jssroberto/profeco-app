@@ -9,7 +9,7 @@ const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto">
 
         {/* Section #1 : title with searchbar */}
-        <h1 className="text-3xl font-bold text-black mb-6">Bienvenido!</h1>
+        <h1 className="text-3xl font-bold text-black mb-6 select-none">Bienvenido!</h1>
         <div className="w-full max-w-3xl">
           <SearchBar
             context="global"

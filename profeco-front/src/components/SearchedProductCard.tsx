@@ -1,14 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { stores } from "../data/stores";
 
 interface StoreOffer {
-  name: string;
+  store_id: string;
   price: string;
   originalPrice?: string;
   oferta?: boolean;
 }
 
 interface SearchedProductCardProps {
+  id?: string;
   imageUrl: string;
   name: string;
   brand: string;
@@ -22,7 +24,12 @@ const OfferBadge = () => (
   </div>
 );
 
+const getStoreNameById = (storeId: string): string => {
+  return stores.find(store => store.id === storeId)?.name || "Tienda";
+};
+
 const SearchedProductCard: React.FC<SearchedProductCardProps> = ({
+  id,
   imageUrl,
   name,
   brand,
@@ -51,16 +58,16 @@ const SearchedProductCard: React.FC<SearchedProductCardProps> = ({
         </div>
       </div>
 
-      {/* Offers from different supers */}
+      {/* Offers from different stores */}
       <div className="flex flex-1 justify-between items-stretch gap-2">
         {offers.map((offer) => (
           <Link
-            key={offer.name}
-            to={`/productos/123`} // cambiar aqui por el id
+            key={offer.store_id}
+            to={`/productos/${id}/${offer.store_id}`}
             className="bg-gray-50 rounded-lg flex flex-col justify-center items-start min-w-[100px] flex-1 px-3 py-2 gap-1 border border-gray-200 hover:bg-white transition-colors"
           >
             <div className="text-sm text-gray-600 font-medium mb-0.5">
-              {offer.name}
+              {getStoreNameById(offer.store_id)}
             </div>
             <div className="flex items-center gap-1">
               <span className="text-xl font-bold text-gray-800">{offer.price}</span>

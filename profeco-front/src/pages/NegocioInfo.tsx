@@ -1,23 +1,30 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import BusinessHeader from '../components/negocios/BusinessHeader';
-import OffersSection from '../components/negocios/OfferSection';
 import ProductsSection from '../components/negocios/ProductsSection';
+import OffersSection from '../components/negocios/OfferSection';
 import ReviewSection from '../components/negocios/ReviewSection';
+import { stores } from '../data/stores';
+import { mockProducts } from '../data/products';
 
+const normalize = (str: string) =>
+  str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const Negociosinfo = () => {
-  // per dopo
   const { id } = useParams();
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const businessData = {
-    name: "Walmart - Sucursal Centro",
-    image: "https://cdn.britannica.com/16/204716-050-8BB76BE8/Walmart-store-Mountain-View-California.jpg",
-    rating: 4.5,
-    totalRatings: 1250,
-    description: "Walmart Sucursal Centro es tu destino para encontrar todo lo que necesitas. Ofrecemos una amplia variedad de productos frescos, abarrotes, electrónicos y más, todo a precios increíbles. Nuestro compromiso es brindarte la mejor experiencia de compra con atención personalizada y ofertas exclusivas.",
-  };
+  const businessData = stores.find(store =>
+    normalize(store.id).replace(/\s+/g, "-") === id
+  );
+
+  if (!businessData) {
+    return <div className="p-6 text-center text-red-600">Negocio no encontrado.</div>;
+  }
+
+  const filteredProducts = mockProducts.filter((product) =>
+    product.offers.some((offer) => offer.store_id === businessData.id)
+  );
 
   const offers = [
     {
@@ -33,24 +40,6 @@ const Negociosinfo = () => {
       description: "Lleva dos kilos de frutas seleccionadas y paga uno",
       validUntil: "2024-04-30",
       discount: 50,
-    },
-  ];
-
-  const products = [
-    {
-      id: "1",
-      name: "Pan Blanco Artesanal",
-      image: "https://www.superaki.mx/cdn/shop/files/7501030452553_230224_f1c3e040-4e1e-42b1-b171-cba003079b55.jpg?v=1709054843",
-      price: 23.50,
-      originalPrice: 29.90,
-      category: "Panadería",
-    },
-    {
-      id: "2",
-      name: "Leche Entera",
-      image: "https://res.cloudinary.com/walmart-labs/image/upload/w_960,dpr_auto,f_auto,q_auto:best/gr/images/product-images/img_large/00750102051534L.jpg",
-      price: 25.90,
-      category: "Lácteos",
     },
   ];
 
@@ -78,9 +67,8 @@ const Negociosinfo = () => {
         isFavorite={isFavorite}
         onToggleFavorite={() => setIsFavorite(!isFavorite)}
       />
-      
       <OffersSection offers={offers} />
-      <ProductsSection products={products} />
+      <ProductsSection products={filteredProducts} storeId={businessData.id}/>
       <ReviewSection reviews={reviews} />
     </div>
   );

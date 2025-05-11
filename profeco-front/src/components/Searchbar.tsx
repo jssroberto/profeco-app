@@ -22,20 +22,18 @@ const SearchBar = ({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    const trimmed = query.trim();
 
-    console.log(`Searching ${context} for:`, query);
-
-    switch(context) {
+    switch (context) {
       case "productos":
-        navigate(`/productos?search=${encodeURIComponent(query)}`);
+        navigate(trimmed ? `/productos?search=${encodeURIComponent(trimmed)}` : "/productos");
         break;
       case "negocios":
-        navigate(`/negocios?search=${encodeURIComponent(query)}`);
+        navigate(trimmed ? `/negocios?search=${encodeURIComponent(trimmed)}` : "/negocios");
         break;
       case "global":
       default:
-        navigate(`/search?q=${encodeURIComponent(query)}`);
+        navigate(trimmed ? `/search?q=${encodeURIComponent(trimmed)}` : "/search");
     }
   };
 

@@ -1,35 +1,46 @@
 import React, { useState } from 'react';
+import { useParams, Link } from "react-router-dom";
+import { mockProducts } from '../data/products';
+import { stores } from '../data/stores';
 
-interface Product {
-  name: string;
-  store: string;
-  image: string;
-  publishedPrice: number;
-}
+const normalize = (str: string): string =>
+  str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-");
 
 const ReportInconsistency = () => {
+  const { id, tienda } = useParams<{ id: string; tienda: string }>();
+  const productIndex = parseInt(id || "0", 10) - 1;
+  const productData = mockProducts[productIndex];
+
+  const offer = productData?.offers.find(o =>
+    normalize(o.store_id).includes(normalize(tienda || ""))
+  );
+  const storeName = stores.find(store => store.id === offer?.store_id)?.name ?? "Tienda desconocida";
+
   const [realPrice, setRealPrice] = useState("");
   const [description, setDescription] = useState("");
   const [observationDate, setObservationDate] = useState("2024-04-02");
 
-  const product: Product = {
-    name: "Pan Blanco Artesanal Bimbo",
-    store: "Walmart - Sucursal A",
-    image: "https://www.superaki.mx/cdn/shop/files/7501030452553_230224_f1c3e040-4e1e-42b1-b171-cba003079b55.jpg?v=1709054843",
-    publishedPrice: 23.50
-  };
+  if (!productData || !offer) {
+    return (
+      <div className="max-w-xl mx-auto mt-24 text-center text-gray-600">
+        No se encontró el producto o la tienda especificada.
+      </div>
+    );
+  }
+
+  const { name, imageUrl } = productData;
+  const publishedPrice = parseFloat(offer.price.replace("$", "").replace(",", ""));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form aqui
-    console.log("Submitting report...");
+    console.log("Reporte enviado");
   };
 
   const calculateDifference = () => {
     const realPriceNum = parseFloat(realPrice);
     if (!isNaN(realPriceNum)) {
-      const diff = realPriceNum - product.publishedPrice;
-      const percentage = (diff / product.publishedPrice) * 100;
+      const diff = realPriceNum - publishedPrice;
+      const percentage = (diff / publishedPrice) * 100;
       return {
         amount: diff.toFixed(2),
         percentage: percentage.toFixed(1)
@@ -43,17 +54,17 @@ const ReportInconsistency = () => {
   return (
     <div className="max-w-2xl mx-auto p-4 pt-8 mt-24">
       <h1 className="text-2xl font-bold mb-4">Reportar inconsistencia</h1>
-      
+
       <div className="bg-[#ebf7ed] text-[#0e4716] p-4 rounded-lg mb-6">
         Tu reporte ayuda a mantener la transparencia en los precios. ProFeCo revisará la información y tomará las
         medidas necesarias. ¡Gracias por tu colaboración!
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg mb-6 flex items-center gap-4">
-        <img src={product.image} alt={product.name} className="w-20 h-20 object-cover rounded-md" />
+        <img src={imageUrl} alt={name} className="w-20 h-20 object-cover rounded-md" />
         <div>
-          <h2 className="font-semibold text-lg">{product.name}</h2>
-          <p className="text-gray-600">{product.store}</p>
+          <h2 className="font-semibold text-lg">{name}</h2>
+          <p className="text-gray-600">{storeName}</p>
         </div>
       </div>
 
@@ -117,7 +128,7 @@ const ReportInconsistency = () => {
           <div className="text-center flex-1">
             <div className="text-sm text-gray-600 mb-1">Precio publicado</div>
             <div className="text-2xl font-bold text-[#0e7d34]">
-              ${product.publishedPrice.toFixed(2)}
+              ${publishedPrice.toFixed(2)}
             </div>
             <div className="text-sm text-gray-500">
               Actualizado: 02/04/2024
@@ -137,12 +148,14 @@ const ReportInconsistency = () => {
         </div>
 
         <div className="flex justify-end gap-4 pt-4">
-          <button
-            type="button"
-            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
-          >
-            Cancelar
-          </button>
+          <Link to={`/productos/${id}/${offer.store_id}`}>
+            <button
+              type="button"
+              className="px-6 py-2 border rounded-lg hover:bg-gray-50 cursor-pointer"
+            >
+              Cancelar
+            </button>
+          </Link>
           <button
             type="submit"
             className="px-6 py-2 bg-[#0e7d34] text-white rounded-lg hover:bg-[#0b6329]"
