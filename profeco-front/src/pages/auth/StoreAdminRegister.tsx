@@ -1,30 +1,37 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useNavigate } from "react-router"
 
-const Register: React.FC = () => {
-
-  let navigate = useNavigate()
+const StoreAdminRegister: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { invitationCode, roleId } = location.state || {};
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
-    role: 'customer' 
+    storeId: roleId || '',
+    invitationCode: invitationCode || ''
   });
+  
   const [errors, setErrors] = useState({
     email: '',
     password: '',
-    name: '',
-    role: ''
+    name: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+
+  if (!invitationCode || !roleId) {
+    navigate('/register/code-verification');
+    return null;
+  }
 
   const validateForm = () => {
-
     let isValid = true;
-    const newErrors = { email: '', password: '', name: '', role: '' };
+    const newErrors = { email: '', password: '', name: '' };
 
-    if (!formData.email) {
+    if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
       isValid = false;
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
@@ -35,12 +42,12 @@ const Register: React.FC = () => {
     if (!formData.password) {
       newErrors.password = 'Password is required';
       isValid = false;
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
       isValid = false;
     }
 
-    if (!formData.name) {
+    if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
       isValid = false;
     }
@@ -53,25 +60,27 @@ const Register: React.FC = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setIsLoading(true);
+
     try {
-      const endpoint = formData.role === 'customer' 
-        ? 'http://localhost:8080/api/v1/auth/register/customer' 
-        : 'http://localhost:8080/api/v1/auth/register/market_admin';
+      const response = await axios.post(
+        'http://localhost:8080/api/v1/auth/register/store-admin',
+        {
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          storeId: formData.storeId,
+          invitationCode: formData.invitationCode
+        }
+      );
 
-      const response = await axios.post(endpoint, {
-        email: formData.email,
-        password: formData.password,
-        name: formData.name
-      });
-
-      console.log('Registration successful:', response.data);
-
-      // now redirect the user to the home with the access token hehe
       localStorage.setItem('accessToken', response.data.accessToken);
-
-      navigate('/')
+      navigate('/');
     } catch (error) {
       console.error('Registration failed:', error);
+      alert('Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -84,38 +93,12 @@ const Register: React.FC = () => {
     <div className="flex min-h-screen">
       <div className="w-full md:w-1/2 flex items-center justify-center p-10">
         <div className="w-full max-w-md space-y-6">
-          <h1 className="text-3xl font-bold mb-6">Create Account</h1>
+          <h1 className="text-3xl font-bold mb-6">Market Admin Registration</h1>
           
-          <div className="flex border border-gray-300 rounded-lg overflow-hidden mb-6">
-            <button
-              type="button"
-              className={`flex-1 py-2 px-4 text-center font-medium cursor-pointer ${
-                formData.role === 'customer' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 hover:bg-gray-200'
-              }`}
-              onClick={() => setFormData(prev => ({ ...prev, role: 'customer' }))}
-            >
-              Soy un consumidor
-            </button>
-            <button
-              type="button"
-              className={`flex-1 py-2 px-4 text-center font-medium cursor-pointer ${
-                formData.role === 'market_admin' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 hover:bg-gray-200'
-              }`}
-              onClick={() => setFormData(prev => ({ ...prev, role: 'market_admin' }))}
-            >
-              Soy un supermercado
-            </button>
-          </div>
-
           <form className="space-y-4" onSubmit={handleSubmit}>
-            {/* Name Field */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
+                Nombre
               </label>
               <input
                 type="text"
@@ -131,7 +114,6 @@ const Register: React.FC = () => {
               {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
 
-            {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
@@ -150,7 +132,6 @@ const Register: React.FC = () => {
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
 
-            {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Contraseña
@@ -169,20 +150,26 @@ const Register: React.FC = () => {
               {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
             </div>
 
+            <input type="hidden" name="storeId" value={formData.storeId} />
+            <input type="hidden" name="invitationCode" value={formData.invitationCode} />
+
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer"
+              disabled={isLoading}
+              className={`w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition ${
+                isLoading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+              }`}
             >
-              Registrarme!
+              {isLoading ? 'Registrando...' : 'Completar registro'}
             </button>
           </form>
 
-          <p className="text-sm text-gray-600 text-center">
-            Ya tienes una cuenta?{' '}
-            <Link to="/login" className="text-blue-600 hover:underline">
-              Inicia sesión
-            </Link>
-          </p>
+          <button
+            onClick={() => navigate('/register/code-verification')}
+            className="w-full bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition cursor-pointer"
+          >
+            Regresar
+          </button>
         </div>
       </div>
 
@@ -197,4 +184,4 @@ const Register: React.FC = () => {
   );
 };
 
-export default Register;
+export default StoreAdminRegister;
