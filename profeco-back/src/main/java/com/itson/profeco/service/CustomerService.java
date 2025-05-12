@@ -1,8 +1,9 @@
 package com.itson.profeco.service;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import com.itson.profeco.security.CustomUserDetails;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,8 @@ import com.itson.profeco.model.UserEntity;
 import com.itson.profeco.repository.CustomerRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @RequiredArgsConstructor
@@ -28,15 +31,31 @@ public class CustomerService {
     private static final String DEFAULT_USER_ROLE = "CUSTOMER";
 
     @Transactional(readOnly = true)
-    public List<CustomerResponse> getAllUsers() {
-        List<Customer> customers = customerRepository.findAll();
-        return customers.stream().map(customerMapper::toResponse).toList();
-    }
+    public CustomerResponse getCurrentCustomer() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    @Transactional(readOnly = true)
-    public CustomerResponse getUserById(UUID id) {
-        Customer customer = customerRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Customer not found with id: " + id));
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new IllegalStateException("There is no authenticated user to get the current client.");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        String username;
+        if (principal instanceof CustomUserDetails) {
+            username = ((CustomUserDetails) principal).getUsername();
+        } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        if (username == null || username.isEmpty()) {
+            throw new IllegalStateException("The authenticated user's email could not be determined.");
+        }
+        Customer customer = customerRepository.findByUser_Email(username)
+                .orElseThrow(() -> {
+                    return new EntityNotFoundException("Client not found for authenticated user: " + username );
+                });
         return customerMapper.toResponse(customer);
     }
 
@@ -45,28 +64,47 @@ public class CustomerService {
         Customer customer = customerMapper.toEntity(customerRequest);
         UserEntity user = customer.getUser();
 
-        if (user != null && customerRequest.getPassword() != null) {
+        if (user == null) {
+            throw new IllegalStateException("User entity no está asociado con el CustomerRequest.");
+        }
+
+        if (customerRepository.findByUser_Email(user.getEmail()).isPresent()) {
+            throw new DataIntegrityViolationException("A client with the email '" + user.getEmail() + "'already exists.");
+        }
+
+        if (customerRequest.getPassword() != null && !customerRequest.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(customerRequest.getPassword()));
-        } else if (user == null) {
-            throw new IllegalStateException("User entity was not created for customer.");
+        } else {
+            throw new IllegalArgumentException("The password cannot be empty for a new customer.");
         }
 
         Role defaultRole = roleService.getRoleEntityByName(DEFAULT_USER_ROLE);
         user.setRoles(Set.of(defaultRole));
 
+
         Customer savedCustomer = customerRepository.save(customer);
         return customerMapper.toResponse(savedCustomer);
-
     }
 
     @Transactional
     public CustomerResponse updateCustomer(UUID id, CustomerRequest customerRequest) {
-        if (!customerRepository.existsById(id)) {
-            throw new EntityNotFoundException("Customer not found with id: " + id);
+        Customer existingCustomer = customerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + id));
+
+
+        customerMapper.updateEntityFromRequest(customerRequest, existingCustomer);
+
+
+        if (customerRequest.getPassword() != null && !customerRequest.getPassword().isEmpty()) {
+            if (existingCustomer.getUser() != null) {
+                existingCustomer.getUser().setPassword(passwordEncoder.encode(customerRequest.getPassword()));
+            } else {
+
+                throw new IllegalStateException("The password cannot be updated, the client does not have an associated user.");
+            }
         }
-        Customer updatedCustomer = customerMapper.toEntity(customerRequest);
-        updatedCustomer.setId(id);
-        Customer savedCustomer = customerRepository.save(updatedCustomer);
+
+        Customer savedCustomer = customerRepository.save(existingCustomer);
         return customerMapper.toResponse(savedCustomer);
     }
 
@@ -78,10 +116,27 @@ public class CustomerService {
         customerRepository.deleteById(id);
     }
 
-    @Transactional(readOnly = true)
-    public CustomerResponse getCustomerByEmail(String email) {
-        Customer customer = customerRepository.findByUser_Email(email).orElseThrow(
-                () -> new EntityNotFoundException("Customer not found for user email: " + email));
-        return customerMapper.toResponse(customer);
-    }
+
+    // METÓDOS NO USADOS, EN LA CÁRCEL DE METODOS
+
+//    @Transactional(readOnly = true)
+//    public CustomerResponse getCustomerByEmail(String email) {
+//        Customer customer = customerRepository.findByUser_Email(email).orElseThrow(
+//                () -> new EntityNotFoundException("Customer not found for user email: " + email));
+//        return customerMapper.toResponse(customer);
+//    }
+//
+//    @Transactional(readOnly = true)
+//    public List<CustomerResponse> getAllUsers() {
+//        List<Customer> customers = customerRepository.findAll();
+//        return customers.stream().map(customerMapper::toResponse).toList();
+//    }
+//
+//    @Transactional(readOnly = true)
+//    public CustomerResponse getUserById(UUID id) {
+//        Customer customer = customerRepository.findById(id).orElseThrow(
+//                () -> new EntityNotFoundException("Customer not found with id: " + id));
+//        return customerMapper.toResponse(customer);
+//    }
+
 }

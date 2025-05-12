@@ -1,38 +1,38 @@
 package com.itson.profeco.service;
 
 import java.time.LocalDateTime;
-import java.util.UUID; // Added import
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.itson.profeco.api.dto.request.ProfecoAdminRequest;
-import com.itson.profeco.api.dto.request.StoreAdminRequest;
 import com.itson.profeco.api.dto.response.InvitationCodeResponse;
 import com.itson.profeco.model.InvitationCode;
-import com.itson.profeco.model.UserEntity; // Added import
 import com.itson.profeco.repository.InvitationCodeRepository;
-import com.itson.profeco.repository.UserRepository; // Added import
 import lombok.RequiredArgsConstructor;
+import com.itson.profeco.Exceptions.InvalidInvitationCodeException;
+import com.itson.profeco.model.UserEntity;
+import com.itson.profeco.repository.UserRepository;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class InvitationCodeService {
 
     private final InvitationCodeRepository invitationCodeRepository;
-    private final UserRepository userRepository; // Added field
-    private static final String PROFECO_ADMIN_ROLE = "PROFECO_ADMIN";
-    private static final String STORE_ADMIN_ROLE = "STORE_ADMIN";
+    private final UserRepository userRepository;
+
+    private static final String PROFECO_ADMIN_ROLE_NAME = "PROFECO_ADMIN";
+    private static final String STORE_ADMIN_ROLE_NAME = "STORE_ADMIN";
 
     @Transactional(readOnly = true)
     public InvitationCodeResponse checkAndGetInvitationRole(String code) {
-        InvitationCode invitationCode = invitationCodeRepository.findByCode(code).orElseThrow(
-                () -> new IllegalArgumentException("Invalid invitation code: " + code));
+        InvitationCode invitationCode = invitationCodeRepository.findByCode(code)
+                .orElseThrow(() -> new InvalidInvitationCodeException("Invalid invitation code: " + code));
 
         if (invitationCode.isUsed()) {
-            throw new IllegalArgumentException("Invitation code has already been used: " + code);
+            throw new InvalidInvitationCodeException("The invitation code has already been used: " + code);
         }
 
         if (invitationCode.getExpirationDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Invitation code has expired: " + code);
+            throw new InvalidInvitationCodeException("The invitation code has expired: " + code);
         }
 
         return new InvitationCodeResponse(invitationCode.getCode(),
@@ -40,50 +40,48 @@ public class InvitationCodeService {
     }
 
     @Transactional(readOnly = true)
-    public Boolean validateInvitationCode(ProfecoAdminRequest profecoAdminRequest) {
-        return validateInvitationCode(profecoAdminRequest.getInvitationCode(), PROFECO_ADMIN_ROLE);
-    }
-
-    @Transactional(readOnly = true)
-    public Boolean validateInvitationCode(StoreAdminRequest storeAdminRequest) {
-        return validateInvitationCode(storeAdminRequest.getInvitationCode(), STORE_ADMIN_ROLE);
+    public void validateProfecoAdminInvitationCode(String code, String email) {
+        validateCode(code, PROFECO_ADMIN_ROLE_NAME, email);
     }
 
 
     @Transactional(readOnly = true)
-    private Boolean validateInvitationCode(String code, String expectedRoleName) {
-        InvitationCode invitationCode = invitationCodeRepository.findByCode(code).orElseThrow(
-                () -> new IllegalArgumentException("Invalid invitation code: " + code));
+    public void validateStoreAdminInvitationCode(String code, String email ) {
+        validateCode(code, STORE_ADMIN_ROLE_NAME, email);
+    }
+
+    private void validateCode(String code, String expectedRoleName, String email) {
+        InvitationCode invitationCode = invitationCodeRepository.findByCode(code)
+                .orElseThrow(() -> new InvalidInvitationCodeException("Invalid invitation code: " + code));
 
         if (invitationCode.isUsed()) {
-            throw new IllegalArgumentException("Invitation code has already been used: " + code);
+
+            throw new InvalidInvitationCodeException("The invitation code has already been used: " + code);
         }
 
         if (invitationCode.getExpirationDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Invitation code has expired: " + code);
+            throw new InvalidInvitationCodeException("The invitation code has expired: " + code);
         }
 
         if (!invitationCode.getRole().getName().equalsIgnoreCase(expectedRoleName)) {
-            throw new IllegalArgumentException(
-                    "Invitation code is for role '" + invitationCode.getRole().getName()
-                            + "', but action is for role '" + expectedRoleName + "'.");
+            throw new InvalidInvitationCodeException(
+                    "The invitation code is for the role '" + invitationCode.getRole().getName()
+                            + "', but the role was expected '" + expectedRoleName + "'.");
         }
-
-        return true;
     }
 
     @Transactional
     public void markCodeAsUsed(String code, UUID userId) {
-        InvitationCode invitationCode = invitationCodeRepository.findByCode(code).orElseThrow(
-                () -> new IllegalArgumentException("Invalid invitation code: " + code));
+        InvitationCode invitationCode = invitationCodeRepository.findByCode(code)
+                .orElseThrow(() -> new InvalidInvitationCodeException("Invalid invitation code: " + code + " al intentar marcarlo como usado."));
 
         if (invitationCode.isUsed()) {
             throw new IllegalStateException(
-                    "Invitation code " + code + " is already marked as used.");
+                    "The invitation code " + code + " is already marked as used.");
         }
 
         if (invitationCode.getExpirationDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalStateException("Invitation code " + code + " has expired.");
+            throw new IllegalStateException("The invitation code " + code + " has expired and cannot be used.");
         }
 
         UserEntity user = userRepository.findById(userId)
@@ -95,4 +93,3 @@ public class InvitationCodeService {
         invitationCodeRepository.save(invitationCode);
     }
 }
-

@@ -1,25 +1,47 @@
 package com.itson.profeco.api.dto.response;
 
+import java.util.List;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
+
+import com.itson.profeco.security.CustomUserDetails;
+import lombok.*;
+
+// AuthResponse.java
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 public class AuthResponse {
+    private final String accessToken;
+    private final UUID id;
+    private final String email;
+    @Builder.Default private final String name = "";
+    private final List<String> roles;
+    private final UUID userEntityId;
 
-    private String accessToken;
 
-    private UUID id;
+    public static AuthResponse from(CustomUserDetails user, String token) {
+        AuthResponseBuilder builder = AuthResponse.builder()
+                .accessToken(token)
+                .id(user.getSpecificUserId())
+                .email(user.getUsername())
+                .name(user.getSpecificName() != null ? user.getSpecificName() : "")
+                .roles(user.getAuthorities().stream()
+                        .map(a -> a.getAuthority().replace("ROLE_", ""))
+                        .toList());
 
-    private UUID userId;
 
-    private String email;
+        if (user.getGenericUserId() != null) {
+            builder.userEntityId(user.getGenericUserId());
+        } else {
 
-    private String name;
+            throw new IllegalStateException("GenericUserId cannot be null in CustomUserDetails when constructing AuthResponse.");
+        }
 
+
+        return builder.build();
+    }
 }

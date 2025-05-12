@@ -3,15 +3,19 @@ package com.itson.profeco.controller;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import com.itson.profeco.api.dto.response.AuthResponse;
+import com.itson.profeco.security.CustomUserDetails;
+import com.itson.profeco.security.JwtUtil;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.itson.profeco.api.dto.request.CustomerRequest;
 import com.itson.profeco.api.dto.response.CustomerResponse;
@@ -30,49 +34,44 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "Customer", description = "Operations related to Customer")
 public class CustomerController {
 
-    private final CustomerService costumerService;
+    private final CustomerService customerService;
+    private final UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
 
-    @Operation(summary = "Get all customers", description = "Returns a list of all customers.")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200",
-            description = "List of customers returned successfully")})
-    @GetMapping
-    public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
-        List<CustomerResponse> responses = costumerService.getAllUsers();
-        return ResponseEntity.ok(responses);
+    @GetMapping("/me")
+    public ResponseEntity<CustomerResponse> getCurrentUser(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        CustomerResponse customer = customerService.getCurrentCustomer();
+        return ResponseEntity.ok(customer);
     }
 
-    @Operation(summary = "Get customer by ID", description = "Returns a customer by their ID.")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Customer found"),
-            @ApiResponse(responseCode = "404", description = "Customer not found")})
-    @GetMapping("/{id}")
-    public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable UUID id) {
-        CustomerResponse response = costumerService.getUserById(id);
-        if (response == null) {
-            return ResponseEntity.notFound().build();
+    @Operation(summary = "Register a new customer",
+            description = "Registers a new customer and returns a JWT and user info.")
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> registerCustomer(
+            @Valid @RequestBody CustomerRequest request) {
+        try {
+            customerService.saveCustomer(request);
+
+            CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(request.getEmail());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered: ");
         }
-        return ResponseEntity.ok(response);
+
     }
 
-    // @Operation(summary = "Create customer", description = "Creates a new customer.")
-    // @ApiResponses(value = {
-    //         @ApiResponse(responseCode = "201", description = "Customer created successfully")})
-    // @PostMapping
-    // public ResponseEntity<CustomerResponse> saveCustomer(
-    //         @Valid @RequestBody CustomerRequest customerRequest) {
-    //     CustomerResponse response = costumerService.saveCustomer(customerRequest);
-    //     return ResponseEntity.status(201).body(response);
-    // }
 
     @Operation(summary = "Update customer", description = "Updates an existing customer.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Customer updated successfully"),
+            @ApiResponse(responseCode = "200", description = "Customer updated successfully"),
             @ApiResponse(responseCode = "404", description = "Customer not found")})
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable UUID id,
-            @Valid @RequestBody CustomerRequest customerRequest, UriComponentsBuilder uriBuilder) {
-        CustomerResponse response = costumerService.updateCustomer(id, customerRequest);
-        URI location = uriBuilder.path("/api/v1/customers/{id}").buildAndExpand(id).toUri();
-        return ResponseEntity.created(location).body(response);
+                                                           @Valid @RequestBody CustomerRequest customerRequest/*, UriComponentsBuilder uriBuilder*/) { // uriBuilder no es necesario si devuelves 200
+        CustomerResponse response = customerService.updateCustomer(id, customerRequest);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Delete customer", description = "Deletes a customer by their ID.")
@@ -81,8 +80,20 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Customer not found")})
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCustomer(@PathVariable UUID id) {
-        costumerService.deleteCustomer(id);
+        customerService.deleteCustomer(id);
         return ResponseEntity.noContent().build();
     }
 
+    private AuthResponse buildAuthResponse(CustomUserDetails userDetails) {
+        String token = jwtUtil.generateToken(userDetails);
+        return AuthResponse.builder()
+                .accessToken(token)
+                .id(userDetails.getSpecificUserId())
+                .email(userDetails.getUsername())
+                .name(userDetails.getSpecificName() != null ? userDetails.getSpecificName() : "")
+                .roles(userDetails.getAuthorities().stream()
+                        .map(a -> a.getAuthority().replace("ROLE_", ""))
+                        .collect(Collectors.toList()))
+                .build();
+    }
 }
