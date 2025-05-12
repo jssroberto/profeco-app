@@ -1,9 +1,10 @@
 package com.itson.profeco.controller;
 
+import com.itson.profeco.Exceptions.InvalidInvitationCodeException;
+import com.itson.profeco.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,10 +15,6 @@ import com.itson.profeco.api.dto.request.CustomerRequest;
 import com.itson.profeco.api.dto.request.ProfecoAdminRequest;
 import com.itson.profeco.api.dto.request.StoreAdminRequest;
 import com.itson.profeco.api.dto.response.AuthResponse;
-import com.itson.profeco.api.dto.response.CustomerResponse;
-import com.itson.profeco.api.dto.response.ProfecoAdminResponse;
-import com.itson.profeco.api.dto.response.StoreAdminResponse;
-import com.itson.profeco.mapper.AuthMapper;
 import com.itson.profeco.security.JwtUtil;
 import com.itson.profeco.service.CustomerService;
 import com.itson.profeco.service.InvitationCodeService;
@@ -28,6 +25,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -39,33 +43,30 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtUtil jwtUtil;
-    private final CustomerService userService;
+    private final CustomerService customerService;
     private final StoreAdminService storeAdminService;
     private final ProfecoAdminService profecoAdminService;
-    private final AuthMapper authMapper;
     private final InvitationCodeService invitationCodeService;
+
 
     @Operation(summary = "Authenticate user and return JWT",
             description = "Authenticates a user with email and password, returns a JWT and user info.",
             tags = {"Authentication"})
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> createAuthenticationToken(
-            @Valid @RequestBody AuthRequest authRequest) throws Exception {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                authRequest.getEmail(), authRequest.getPassword()));
+    public ResponseEntity<AuthResponse> login(
+                                               @Valid @RequestBody AuthRequest authRequest) {
 
-        final UserDetails userDetails =
-                userDetailsService.loadUserByUsername(authRequest.getEmail());
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        authRequest.getEmail(),
+                        authRequest.getPassword()
+                )
+        );
 
-        final String jwt = jwtUtil.generateToken(userDetails);
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        CustomerResponse customerResponse =
-                userService.getCustomerByEmail(userDetails.getUsername());
 
-        AuthResponse authResponse = authMapper.fromCustomerResponse(customerResponse);
-        authResponse.setAccessToken(jwt);
-
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(buildAuthResponse(customUserDetails));
     }
 
     @Operation(summary = "Register a new customer",
@@ -74,16 +75,15 @@ public class AuthController {
     @PostMapping("/register/customer")
     public ResponseEntity<AuthResponse> registerCustomer(
             @Valid @RequestBody CustomerRequest customerRequest) {
-        CustomerResponse customerResponse = userService.saveCustomer(customerRequest);
+        try {
+            customerService.saveCustomer(customerRequest);
 
-        final UserDetails userDetails =
-                userDetailsService.loadUserByUsername(customerRequest.getEmail());
-        final String jwt = jwtUtil.generateToken(userDetails);
+            CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(customerRequest.getEmail());
 
-        AuthResponse authResponse = authMapper.fromCustomerResponse(customerResponse);
-        authResponse.setAccessToken(jwt);
-
-        return ResponseEntity.ok(authResponse);
+            return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered: " + customerRequest.getEmail());
+        }
     }
 
     @Operation(summary = "Register a new store admin",
@@ -92,19 +92,32 @@ public class AuthController {
     @PostMapping("/register/store-admin")
     public ResponseEntity<AuthResponse> registerStoreAdmin(
             @Valid @RequestBody StoreAdminRequest storeAdminRequest) {
-        invitationCodeService.validateInvitationCode(storeAdminRequest);
-        StoreAdminResponse storeAdminResponse = storeAdminService.saveStoreAdmin(storeAdminRequest);
-        invitationCodeService.markCodeAsUsed(storeAdminRequest.getInvitationCode(),
-                storeAdminResponse.getUserId());
+        try {
+            invitationCodeService.validateStoreAdminInvitationCode(
+                    storeAdminRequest.getInvitationCode(),
+                    storeAdminRequest.getEmail()
+            );
 
-        final UserDetails userDetails =
-                userDetailsService.loadUserByUsername(storeAdminRequest.getEmail());
-        final String jwt = jwtUtil.generateToken(userDetails);
+            storeAdminService.saveStoreAdmin(storeAdminRequest);
 
-        AuthResponse authResponse = authMapper.fromStoreAdminResponse(storeAdminResponse);
-        authResponse.setAccessToken(jwt);
 
-        return ResponseEntity.ok(authResponse);
+            CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(storeAdminRequest.getEmail());
+            UUID createdUserEntityId = customUserDetails.getGenericUserId();
+
+
+            invitationCodeService.markCodeAsUsed(
+                    storeAdminRequest.getInvitationCode(),
+                    createdUserEntityId
+            );
+
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
+
+        } catch (InvalidInvitationCodeException | IllegalStateException | IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered: " + storeAdminRequest.getEmail());
+        }
     }
 
     @Operation(summary = "Register a new profeco admin",
@@ -113,20 +126,46 @@ public class AuthController {
     @PostMapping("/register/profeco-admin")
     public ResponseEntity<AuthResponse> registerProfecoAdmin(
             @Valid @RequestBody ProfecoAdminRequest profecoAdminRequest) {
-        invitationCodeService.validateInvitationCode(profecoAdminRequest);
-        ProfecoAdminResponse profecoAdminResponse =
-                profecoAdminService.saveProfecoAdmin(profecoAdminRequest);
-        invitationCodeService.markCodeAsUsed(profecoAdminRequest.getInvitationCode(),
-                profecoAdminResponse.getUserId());
+        try {
+            invitationCodeService.validateProfecoAdminInvitationCode(
+                    profecoAdminRequest.getInvitationCode(),
+                    profecoAdminRequest.getEmail()
+            );
 
-        final UserDetails userDetails =
-                userDetailsService.loadUserByUsername(profecoAdminRequest.getEmail());
-        final String jwt = jwtUtil.generateToken(userDetails);
+            profecoAdminService.saveProfecoAdmin(profecoAdminRequest);
 
-        AuthResponse authResponse = authMapper.fromProfecoAdminResponse(profecoAdminResponse);
-        authResponse.setAccessToken(jwt);
+            CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(profecoAdminRequest.getEmail());
+            UUID createdUserEntityId = customUserDetails.getGenericUserId();
 
-        return ResponseEntity.ok(authResponse);
+            invitationCodeService.markCodeAsUsed(
+                    profecoAdminRequest.getInvitationCode(),
+                    createdUserEntityId
+            );
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
+
+        } catch (InvalidInvitationCodeException | IllegalStateException | IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered: " + profecoAdminRequest.getEmail());
+        }
     }
 
+    private AuthResponse buildAuthResponse(CustomUserDetails userDetails) {
+        String token = jwtUtil.generateToken(userDetails);
+        AuthResponse.AuthResponseBuilder builder = AuthResponse.builder()
+                .accessToken(token)
+                .id(userDetails.getSpecificUserId())
+                .email(userDetails.getUsername())
+                .name(userDetails.getSpecificName() != null ? userDetails.getSpecificName() : "")
+                .roles(userDetails.getAuthorities().stream()
+                        .map(a -> a.getAuthority().replace("ROLE_", ""))
+                        .collect(Collectors.toList()));
+
+         if (userDetails.getGenericUserId() != null) {
+            builder.userEntityId(userDetails.getGenericUserId());
+         }
+
+        return builder.build();
+    }
 }
