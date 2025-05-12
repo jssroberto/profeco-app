@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from "../../context/AuthContext";
 
 const StoreAdminRegister: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const {login} = useAuth();
   const { invitationCode, roleId } = location.state || {};
   
   const [formData, setFormData] = useState({
@@ -74,7 +76,7 @@ const StoreAdminRegister: React.FC = () => {
         }
       );
 
-      localStorage.setItem('accessToken', response.data.accessToken);
+      login(response.data.accessToken, 'STORE_ADMIN');
       navigate('/');
     } catch (error) {
       console.error('Registration failed:', error);
@@ -93,7 +95,7 @@ const StoreAdminRegister: React.FC = () => {
     <div className="flex min-h-screen">
       <div className="w-full md:w-1/2 flex items-center justify-center p-10">
         <div className="w-full max-w-md space-y-6">
-          <h1 className="text-3xl font-bold mb-6">Market Admin Registration</h1>
+          <h1 className="text-3xl font-bold mb-6">Registro de Administrador de Negocio</h1>
           
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>

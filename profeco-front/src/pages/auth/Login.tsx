@@ -3,17 +3,21 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 
-
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({ 
+    email: "", 
+    password: "",
+    form: "" // Added form-level error
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { email: "", password: "" };
+    const newErrors = { email: "", password: "", form: "" };
 
     if (!email) {
       newErrors.email = "El email es requerido";
@@ -39,20 +43,48 @@ const Login: React.FC = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setIsSubmitting(true);
+    setErrors(prev => ({ ...prev, form: "" })); // Clear previous errors
+
     try {
-      const response = await axios.post("http://localhost:8080/api/v1/auth/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/api/v1/auth/login", 
+        { email, password },
+        { validateStatus: (status) => status < 500 } // Don't throw on 4xx errors
+      );
 
-      login(response.data.accessToken);
-      navigate("/")
-      
-      localStorage.setItem("token", response.data.token);
-
-      // navigate to main page!!!
+      if (response.status === 200) {
+        login(response.data.accessToken);
+        localStorage.setItem("accessToken", response.data.accessToken);
+        navigate("/");
+      } else {
+        if (response.status === 403) {
+          setErrors(prev => ({
+            ...prev,
+            form: "Email o contraseña incorrectos",
+            password: " "
+          }));
+        } else if (response.status === 404) {
+          setErrors(prev => ({
+            ...prev,
+            form: "Usuario no encontrado",
+            email: " " 
+          }));
+        } else {
+          setErrors(prev => ({
+            ...prev,
+            form: `Error al iniciar sesión: ${response.data?.message || "Intente nuevamente"}`
+          }));
+        }
+      }
     } catch (error) {
-        console.log(error)
+      setErrors(prev => ({
+        ...prev,
+        form: "Error de conexión. Intente nuevamente más tarde"
+      }));
+      console.error("Login error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -61,6 +93,14 @@ const Login: React.FC = () => {
       <div className="w-full md:w-1/2 flex items-center justify-center p-10">
         <div className="w-full max-w-md space-y-6">
           <h1 className="text-3xl font-bold mb-12">Inicio de Sesión</h1>
+          
+          {/* Form-level error message */}
+          {errors.form && (
+            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+              {errors.form}
+            </div>
+          )}
+
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -70,7 +110,10 @@ const Login: React.FC = () => {
                 type="email"
                 id="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors(prev => ({ ...prev, email: "", form: "" }));
+                }}
                 className={`mt-1 w-full border ${
                   errors.email ? "border-red-500" : "border-gray-300"
                 } rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -88,7 +131,10 @@ const Login: React.FC = () => {
                 type="password"
                 id="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors(prev => ({ ...prev, password: "", form: "" }));
+                }}
                 className={`mt-1 w-full border ${
                   errors.password ? "border-red-500" : "border-gray-300"
                 } rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -100,9 +146,12 @@ const Login: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer"
+              disabled={isSubmitting}
+              className={`w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition ${
+                isSubmitting ? "opacity-70 cursor-not-allowed" : "cursor-pointer"
+              }`}
             >
-              Iniciar sesión
+              {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
             </button>
           </form>
 

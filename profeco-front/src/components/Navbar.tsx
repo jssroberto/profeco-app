@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 
 interface LinkItem {
@@ -11,6 +11,9 @@ const Navbar: React.FC = () => {
 
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+  }, [isAuthenticated]);
 
   const handleLogout = () => {
     logout();

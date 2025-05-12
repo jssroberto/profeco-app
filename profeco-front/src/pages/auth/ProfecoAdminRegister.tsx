@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const ProfecoAdminRegister: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const {login} = useAuth();
   const { invitationCode } = location.state || {};
   
   const [formData, setFormData] = useState({
@@ -72,7 +74,7 @@ const ProfecoAdminRegister: React.FC = () => {
         }
       );
 
-      localStorage.setItem('accessToken', response.data.accessToken);
+      login(response.data.accessToken, 'PROFECO_ADMIN');
       navigate('/');
     } catch (error) {
       console.error('Registration failed:', error);
