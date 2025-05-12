@@ -32,7 +32,8 @@ public class StoreAdminRequest {
     @NotNull(message = "Store ID is required")
     private UUID storeId;
 
-    // @NotBlank(message = "Invitation code is required")
-    // private String invitationCode;
+    @NotBlank(message = "Invitation code is required")
+    @Size(min = 64, max = 64, message = "Invitation code must be exactly 64 characters long")
+    private String invitationCode;
 
 }

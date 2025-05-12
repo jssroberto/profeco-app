@@ -20,6 +20,7 @@ import com.itson.profeco.api.dto.response.StoreAdminResponse;
 import com.itson.profeco.mapper.AuthMapper;
 import com.itson.profeco.security.JwtUtil;
 import com.itson.profeco.service.CustomerService;
+import com.itson.profeco.service.InvitationCodeService; // Added import
 import com.itson.profeco.service.ProfecoAdminService;
 import com.itson.profeco.service.StoreAdminService;
 import com.itson.profeco.service.UserDetailsServiceImpl;
@@ -42,6 +43,7 @@ public class AuthController {
     private final StoreAdminService storeAdminService;
     private final ProfecoAdminService profecoAdminService;
     private final AuthMapper authMapper;
+    private final InvitationCodeService invitationCodeService; // Added field
 
     @Operation(summary = "Authenticate user and return JWT",
             description = "Authenticates a user with email and password, returns a JWT and user info.",
@@ -90,6 +92,7 @@ public class AuthController {
     @PostMapping("/register/store-admin")
     public ResponseEntity<AuthResponse> registerStoreAdmin(
             @Valid @RequestBody StoreAdminRequest storeAdminRequest) {
+        invitationCodeService.validateInvitationCode(storeAdminRequest);
         StoreAdminResponse storeAdminResponse = storeAdminService.saveStoreAdmin(storeAdminRequest);
 
         final UserDetails userDetails =
@@ -108,6 +111,7 @@ public class AuthController {
     @PostMapping("/register/profeco-admin")
     public ResponseEntity<AuthResponse> registerProfecoAdmin(
             @Valid @RequestBody ProfecoAdminRequest profecoAdminRequest) {
+        invitationCodeService.validateInvitationCode(profecoAdminRequest);
         ProfecoAdminResponse profecoAdminResponse =
                 profecoAdminService.saveProfecoAdmin(profecoAdminRequest);
 

@@ -27,7 +27,8 @@ public class ProfecoAdminRequest {
     @Size(max = 50, message = "Name should not exceed 50 characters")
     private String name;
 
-    // @NotBlank(message = "Invitation code is required")
-    // private String invitationCode;
+    @NotBlank(message = "Invitation code is required")
+    @Size(min = 64, max = 64, message = "Invitation code must be exactly 64 characters long")
+    private String invitationCode;
 
 }

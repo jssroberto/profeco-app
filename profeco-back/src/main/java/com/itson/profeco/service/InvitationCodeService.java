@@ -3,6 +3,8 @@ package com.itson.profeco.service;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.itson.profeco.api.dto.request.ProfecoAdminRequest; // Added import
+import com.itson.profeco.api.dto.request.StoreAdminRequest; // Added import
 import com.itson.profeco.api.dto.response.InvitationCodeResponse; // Added import
 import com.itson.profeco.model.InvitationCode;
 import com.itson.profeco.repository.InvitationCodeRepository;
@@ -13,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 public class InvitationCodeService {
 
     private final InvitationCodeRepository invitationCodeRepository;
+    private static final String PROFECO_ADMIN_ROLE = "PROFECO_ADMIN";
+    private static final String STORE_ADMIN_ROLE = "STORE_ADMIN";
 
     @Transactional(readOnly = true)
     public InvitationCodeResponse checkAndGetInvitationRole(String code) {
@@ -32,7 +36,18 @@ public class InvitationCodeService {
     }
 
     @Transactional(readOnly = true)
-    public Boolean validateInvitationCode(String code, String expectedRoleName) {
+    public Boolean validateInvitationCode(ProfecoAdminRequest profecoAdminRequest) {
+        return validateInvitationCode(profecoAdminRequest.getInvitationCode(), PROFECO_ADMIN_ROLE);
+    }
+
+    @Transactional(readOnly = true)
+    public Boolean validateInvitationCode(StoreAdminRequest storeAdminRequest) {
+        return validateInvitationCode(storeAdminRequest.getInvitationCode(), STORE_ADMIN_ROLE);
+    }
+
+
+    @Transactional(readOnly = true)
+    private Boolean validateInvitationCode(String code, String expectedRoleName) {
         InvitationCode invitationCode = invitationCodeRepository.findByCode(code).orElseThrow(
                 () -> new IllegalArgumentException("Invalid invitation code: " + code));
 
@@ -52,6 +67,5 @@ public class InvitationCodeService {
 
         return true;
     }
-
 }
 

@@ -96,4 +96,5 @@ public class ProfecoAdminService {
                         "ProfecoAdmin not found for user email: " + email));
         return profecoAdminMapper.toResponse(profecoAdmin);
     }
+    
 }
