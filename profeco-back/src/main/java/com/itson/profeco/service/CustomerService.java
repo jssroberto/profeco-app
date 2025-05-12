@@ -116,27 +116,4 @@ public class CustomerService {
         customerRepository.deleteById(id);
     }
 
-
-    // METÓDOS NO USADOS, EN LA CÁRCEL DE METODOS
-
-//    @Transactional(readOnly = true)
-//    public CustomerResponse getCustomerByEmail(String email) {
-//        Customer customer = customerRepository.findByUser_Email(email).orElseThrow(
-//                () -> new EntityNotFoundException("Customer not found for user email: " + email));
-//        return customerMapper.toResponse(customer);
-//    }
-//
-//    @Transactional(readOnly = true)
-//    public List<CustomerResponse> getAllUsers() {
-//        List<Customer> customers = customerRepository.findAll();
-//        return customers.stream().map(customerMapper::toResponse).toList();
-//    }
-//
-//    @Transactional(readOnly = true)
-//    public CustomerResponse getUserById(UUID id) {
-//        Customer customer = customerRepository.findById(id).orElseThrow(
-//                () -> new EntityNotFoundException("Customer not found with id: " + id));
-//        return customerMapper.toResponse(customer);
-//    }
-
 }

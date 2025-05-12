@@ -1,6 +1,5 @@
 package com.itson.profeco.controller;
 
-import com.itson.profeco.Exceptions.InvalidInvitationCodeException;
 import com.itson.profeco.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,10 +24,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -75,15 +72,13 @@ public class AuthController {
     @PostMapping("/register/customer")
     public ResponseEntity<AuthResponse> registerCustomer(
             @Valid @RequestBody CustomerRequest customerRequest) {
-        try {
+
             customerService.saveCustomer(customerRequest);
 
             CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(customerRequest.getEmail());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
-        } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered: " + customerRequest.getEmail());
-        }
+
     }
 
     @Operation(summary = "Register a new store admin",
@@ -92,7 +87,7 @@ public class AuthController {
     @PostMapping("/register/store-admin")
     public ResponseEntity<AuthResponse> registerStoreAdmin(
             @Valid @RequestBody StoreAdminRequest storeAdminRequest) {
-        try {
+
             invitationCodeService.validateStoreAdminInvitationCode(
                     storeAdminRequest.getInvitationCode(),
                     storeAdminRequest.getEmail()
@@ -113,11 +108,6 @@ public class AuthController {
 
             return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
 
-        } catch (InvalidInvitationCodeException | IllegalStateException | IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered: " + storeAdminRequest.getEmail());
-        }
     }
 
     @Operation(summary = "Register a new profeco admin",
@@ -126,29 +116,23 @@ public class AuthController {
     @PostMapping("/register/profeco-admin")
     public ResponseEntity<AuthResponse> registerProfecoAdmin(
             @Valid @RequestBody ProfecoAdminRequest profecoAdminRequest) {
-        try {
-            invitationCodeService.validateProfecoAdminInvitationCode(
-                    profecoAdminRequest.getInvitationCode(),
-                    profecoAdminRequest.getEmail()
-            );
 
-            profecoAdminService.saveProfecoAdmin(profecoAdminRequest);
+        invitationCodeService.validateProfecoAdminInvitationCode(
+                profecoAdminRequest.getInvitationCode(),
+                profecoAdminRequest.getEmail()
+        );
 
-            CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(profecoAdminRequest.getEmail());
-            UUID createdUserEntityId = customUserDetails.getGenericUserId();
+        profecoAdminService.saveProfecoAdmin(profecoAdminRequest);
 
-            invitationCodeService.markCodeAsUsed(
-                    profecoAdminRequest.getInvitationCode(),
-                    createdUserEntityId
-            );
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(profecoAdminRequest.getEmail());
+        UUID createdUserEntityId = customUserDetails.getGenericUserId();
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
+        invitationCodeService.markCodeAsUsed(
+                profecoAdminRequest.getInvitationCode(),
+                createdUserEntityId
+        );
 
-        } catch (InvalidInvitationCodeException | IllegalStateException | IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered: " + profecoAdminRequest.getEmail());
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
     }
 
     private AuthResponse buildAuthResponse(CustomUserDetails userDetails) {

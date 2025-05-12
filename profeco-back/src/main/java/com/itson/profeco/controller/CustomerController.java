@@ -35,8 +35,6 @@ import lombok.RequiredArgsConstructor;
 public class CustomerController {
 
     private final CustomerService customerService;
-    private final UserDetailsService userDetailsService;
-    private final JwtUtil jwtUtil;
 
     @GetMapping("/me")
     public ResponseEntity<CustomerResponse> getCurrentUser(
@@ -44,24 +42,6 @@ public class CustomerController {
         CustomerResponse customer = customerService.getCurrentCustomer();
         return ResponseEntity.ok(customer);
     }
-
-    @Operation(summary = "Register a new customer",
-            description = "Registers a new customer and returns a JWT and user info.")
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> registerCustomer(
-            @Valid @RequestBody CustomerRequest request) {
-        try {
-            customerService.saveCustomer(request);
-
-            CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(request.getEmail());
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
-        } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered: ");
-        }
-
-    }
-
 
     @Operation(summary = "Update customer", description = "Updates an existing customer.")
     @ApiResponses(value = {
@@ -84,16 +64,4 @@ public class CustomerController {
         return ResponseEntity.noContent().build();
     }
 
-    private AuthResponse buildAuthResponse(CustomUserDetails userDetails) {
-        String token = jwtUtil.generateToken(userDetails);
-        return AuthResponse.builder()
-                .accessToken(token)
-                .id(userDetails.getSpecificUserId())
-                .email(userDetails.getUsername())
-                .name(userDetails.getSpecificName() != null ? userDetails.getSpecificName() : "")
-                .roles(userDetails.getAuthorities().stream()
-                        .map(a -> a.getAuthority().replace("ROLE_", ""))
-                        .collect(Collectors.toList()))
-                .build();
-    }
 }

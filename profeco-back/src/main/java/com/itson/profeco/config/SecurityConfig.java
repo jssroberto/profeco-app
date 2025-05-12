@@ -76,9 +76,16 @@ public class SecurityConfig {
         return (request, response, authException) -> {
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\": \"Invalid or expired token\"}");
+
+            String message = authException.getMessage();
+            if (message == null || message.isBlank()) {
+                message = "Unauthorized";
+            }
+
+            response.getWriter().write("{\"error\": \"" + message + "\"}");
         };
     }
+
 
     @Bean
     public AccessDeniedHandler jwtAccessDeniedHandler() {

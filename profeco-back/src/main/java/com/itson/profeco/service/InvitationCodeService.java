@@ -7,7 +7,7 @@ import com.itson.profeco.api.dto.response.InvitationCodeResponse;
 import com.itson.profeco.model.InvitationCode;
 import com.itson.profeco.repository.InvitationCodeRepository;
 import lombok.RequiredArgsConstructor;
-import com.itson.profeco.Exceptions.InvalidInvitationCodeException;
+import com.itson.profeco.exceptions.InvalidInvitationCodeException;
 import com.itson.profeco.model.UserEntity;
 import com.itson.profeco.repository.UserRepository;
 import java.util.UUID;
