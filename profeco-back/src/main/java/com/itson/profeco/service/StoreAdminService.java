@@ -28,18 +28,6 @@ public class StoreAdminService {
 
     private static final String DEFAULT_USER_ROLE = "STORE_ADMIN";
 
-    @Transactional(readOnly = true)
-    public List<StoreAdminResponse> getAllStoreAdmins() {
-        List<StoreAdmin> storeAdmins = storeAdminRepository.findAll();
-        return storeAdmins.stream().map(storeAdminMapper::toResponse).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public StoreAdminResponse getStoreAdminById(UUID id) {
-        StoreAdmin storeAdmin = storeAdminRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("StoreAdmin not found with id: " + id));
-        return storeAdminMapper.toResponse(storeAdmin);
-    }
 
     @Transactional
     public StoreAdminResponse saveStoreAdmin(StoreAdminRequest storeAdminRequest) {
@@ -103,4 +91,29 @@ public class StoreAdminService {
                 () -> new EntityNotFoundException("StoreAdmin not found for user email: " + email));
         return storeAdminMapper.toResponse(storeAdmin);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    @Transactional(readOnly = true)
+//    public List<StoreAdminResponse> getAllStoreAdmins() {
+//        List<StoreAdmin> storeAdmins = storeAdminRepository.findAll();
+//        return storeAdmins.stream().map(storeAdminMapper::toResponse).toList();
+//    }
+//
+//    @Transactional(readOnly = true)
+//    public StoreAdminResponse getStoreAdminById(UUID id) {
+//        StoreAdmin storeAdmin = storeAdminRepository.findById(id).orElseThrow(
+//                () -> new EntityNotFoundException("StoreAdmin not found with id: " + id));
+//        return storeAdminMapper.toResponse(storeAdmin);
+//    }
 }

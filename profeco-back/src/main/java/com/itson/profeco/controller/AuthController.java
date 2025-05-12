@@ -87,27 +87,18 @@ public class AuthController {
     @PostMapping("/register/store-admin")
     public ResponseEntity<AuthResponse> registerStoreAdmin(
             @Valid @RequestBody StoreAdminRequest storeAdminRequest) {
-
             invitationCodeService.validateStoreAdminInvitationCode(
                     storeAdminRequest.getInvitationCode(),
                     storeAdminRequest.getEmail()
             );
-
             storeAdminService.saveStoreAdmin(storeAdminRequest);
-
-
             CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(storeAdminRequest.getEmail());
             UUID createdUserEntityId = customUserDetails.getGenericUserId();
-
-
             invitationCodeService.markCodeAsUsed(
                     storeAdminRequest.getInvitationCode(),
                     createdUserEntityId
             );
-
-
             return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
-
     }
 
     @Operation(summary = "Register a new profeco admin",
@@ -116,24 +107,21 @@ public class AuthController {
     @PostMapping("/register/profeco-admin")
     public ResponseEntity<AuthResponse> registerProfecoAdmin(
             @Valid @RequestBody ProfecoAdminRequest profecoAdminRequest) {
-
         invitationCodeService.validateProfecoAdminInvitationCode(
                 profecoAdminRequest.getInvitationCode(),
                 profecoAdminRequest.getEmail()
         );
-
         profecoAdminService.saveProfecoAdmin(profecoAdminRequest);
-
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(profecoAdminRequest.getEmail());
         UUID createdUserEntityId = customUserDetails.getGenericUserId();
-
         invitationCodeService.markCodeAsUsed(
                 profecoAdminRequest.getInvitationCode(),
                 createdUserEntityId
         );
-
         return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
     }
+
+
 
     private AuthResponse buildAuthResponse(CustomUserDetails userDetails) {
         String token = jwtUtil.generateToken(userDetails);

@@ -38,26 +38,18 @@ public class CustomerService {
             throw new IllegalStateException("There is no authenticated user to get the current client.");
         }
 
-        Object principal = authentication.getPrincipal();
-
-        String username;
-        if (principal instanceof CustomUserDetails) {
-            username = ((CustomUserDetails) principal).getUsername();
-        } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-            username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
-        } else {
-            username = principal.toString();
-        }
+        String username = authentication.getName();
 
         if (username == null || username.isEmpty()) {
             throw new IllegalStateException("The authenticated user's email could not be determined.");
         }
+
         Customer customer = customerRepository.findByUser_Email(username)
-                .orElseThrow(() -> {
-                    return new EntityNotFoundException("Client not found for authenticated user: " + username );
-                });
+                .orElseThrow(() -> new EntityNotFoundException("Client not found for authenticated user: " + username));
+
         return customerMapper.toResponse(customer);
     }
+
 
     @Transactional
     public CustomerResponse saveCustomer(CustomerRequest customerRequest) {

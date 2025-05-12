@@ -1,22 +1,11 @@
 package com.itson.profeco.controller;
 
-import java.net.URI;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import com.itson.profeco.api.dto.response.AuthResponse;
-import com.itson.profeco.security.CustomUserDetails;
-import com.itson.profeco.security.JwtUtil;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.util.UriComponentsBuilder;
 import com.itson.profeco.api.dto.request.CustomerRequest;
 import com.itson.profeco.api.dto.response.CustomerResponse;
 import com.itson.profeco.service.CustomerService;
@@ -49,7 +38,7 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Customer not found")})
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable UUID id,
-                                                           @Valid @RequestBody CustomerRequest customerRequest/*, UriComponentsBuilder uriBuilder*/) { // uriBuilder no es necesario si devuelves 200
+                                                           @Valid @RequestBody CustomerRequest customerRequest) {
         CustomerResponse response = customerService.updateCustomer(id, customerRequest);
         return ResponseEntity.ok(response);
     }
