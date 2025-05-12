@@ -13,7 +13,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState<string | null>(null);
 
-  // Initialize auth state from localStorage on mount
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     const storedRole = localStorage.getItem('userRole');
@@ -21,14 +20,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (token) {
       setIsAuthenticated(true);
       setRole(storedRole);
-      
-      // If you need to extract role from token (JWT) when page refreshes:
-      // try {
-      //   const payload = JSON.parse(atob(token.split('.')[1]));
-      //   setRole(payload.role || storedRole);
-      // } catch (e) {
-      //   console.error("Failed to parse token", e);
-      // }
+       try {
+         const payload = JSON.parse(atob(token.split('.')[1]));
+         setRole(payload.role || storedRole);
+       } catch (e) {
+         console.error("Failed to parse token", e);
+       }
     }
   }, []);
 
@@ -40,7 +37,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('userRole', role);
       setRole(role);
     } else {
-      // Extract role from token if not provided
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const tokenRole = payload.role;

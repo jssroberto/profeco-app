@@ -1,9 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
 import SearchBar from "../components/Searchbar";
 import MostSearchedProducts from "../components/MostSearchedProducts";
 import PopularSupermarkets from "../components/PopularSupermarkets";
+import { useAuth } from "../context/AuthContext";
 
 const HomePage: React.FC = () => {
+
+  /* const { role } = useAuth();
+
+  useEffect(() => {
+    console.log('Current user role:', role);
+  }, [role]);
+
+ */
+
   return (
     <div className="pt-26 px-4 sm:px-6 lg:px-8 min-h-screen bg-white">
       <div className="max-w-7xl mx-auto">

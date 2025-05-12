@@ -6,10 +6,10 @@ import { useAuth } from "../../context/AuthContext";
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({ 
-    email: "", 
+  const [errors, setErrors] = useState({
+    email: "",
     password: "",
-    form: "" // Added form-level error
+    form: "", // Added form-level error
   });
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
   const { login } = useAuth();
@@ -44,43 +44,49 @@ const Login: React.FC = () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    setErrors(prev => ({ ...prev, form: "" })); // Clear previous errors
+    setErrors((prev) => ({ ...prev, form: "" }));
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/v1/auth/login", 
+        "http://localhost:8080/api/v1/auth/login",
         { email, password },
-        { validateStatus: (status) => status < 500 } // Don't throw on 4xx errors
+        { validateStatus: (status) => status < 500 }
       );
 
+      // debug section lol
+      const token = response.data.accessToken;
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      console.log("JWT Payload:", payload);
+
       if (response.status === 200) {
-        login(response.data.accessToken);
-        localStorage.setItem("accessToken", response.data.accessToken);
+        login(token);
         navigate("/");
       } else {
         if (response.status === 403) {
-          setErrors(prev => ({
+          setErrors((prev) => ({
             ...prev,
             form: "Email o contraseña incorrectos",
-            password: " "
+            password: " ",
           }));
         } else if (response.status === 404) {
-          setErrors(prev => ({
+          setErrors((prev) => ({
             ...prev,
             form: "Usuario no encontrado",
-            email: " " 
+            email: " ",
           }));
         } else {
-          setErrors(prev => ({
+          setErrors((prev) => ({
             ...prev,
-            form: `Error al iniciar sesión: ${response.data?.message || "Intente nuevamente"}`
+            form: `Error al iniciar sesión: ${
+              response.data?.message || "Intente nuevamente"
+            }`,
           }));
         }
       }
     } catch (error) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        form: "Error de conexión. Intente nuevamente más tarde"
+        form: "Error de conexión. Intente nuevamente más tarde",
       }));
       console.error("Login error:", error);
     } finally {
@@ -93,7 +99,7 @@ const Login: React.FC = () => {
       <div className="w-full md:w-1/2 flex items-center justify-center p-10">
         <div className="w-full max-w-md space-y-6">
           <h1 className="text-3xl font-bold mb-12">Inicio de Sesión</h1>
-          
+
           {/* Form-level error message */}
           {errors.form && (
             <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">
@@ -103,7 +109,10 @@ const Login: React.FC = () => {
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <input
@@ -112,7 +121,7 @@ const Login: React.FC = () => {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  setErrors(prev => ({ ...prev, email: "", form: "" }));
+                  setErrors((prev) => ({ ...prev, email: "", form: "" }));
                 }}
                 className={`mt-1 w-full border ${
                   errors.email ? "border-red-500" : "border-gray-300"
@@ -124,7 +133,10 @@ const Login: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Contraseña
               </label>
               <input
@@ -133,7 +145,7 @@ const Login: React.FC = () => {
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  setErrors(prev => ({ ...prev, password: "", form: "" }));
+                  setErrors((prev) => ({ ...prev, password: "", form: "" }));
                 }}
                 className={`mt-1 w-full border ${
                   errors.password ? "border-red-500" : "border-gray-300"
@@ -148,7 +160,9 @@ const Login: React.FC = () => {
               type="submit"
               disabled={isSubmitting}
               className={`w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition ${
-                isSubmitting ? "opacity-70 cursor-not-allowed" : "cursor-pointer"
+                isSubmitting
+                  ? "opacity-70 cursor-not-allowed"
+                  : "cursor-pointer"
               }`}
             >
               {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
