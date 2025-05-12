@@ -20,7 +20,7 @@ import com.itson.profeco.api.dto.response.StoreAdminResponse;
 import com.itson.profeco.mapper.AuthMapper;
 import com.itson.profeco.security.JwtUtil;
 import com.itson.profeco.service.CustomerService;
-import com.itson.profeco.service.InvitationCodeService; // Added import
+import com.itson.profeco.service.InvitationCodeService;
 import com.itson.profeco.service.ProfecoAdminService;
 import com.itson.profeco.service.StoreAdminService;
 import com.itson.profeco.service.UserDetailsServiceImpl;
@@ -43,7 +43,7 @@ public class AuthController {
     private final StoreAdminService storeAdminService;
     private final ProfecoAdminService profecoAdminService;
     private final AuthMapper authMapper;
-    private final InvitationCodeService invitationCodeService; // Added field
+    private final InvitationCodeService invitationCodeService;
 
     @Operation(summary = "Authenticate user and return JWT",
             description = "Authenticates a user with email and password, returns a JWT and user info.",
@@ -94,6 +94,8 @@ public class AuthController {
             @Valid @RequestBody StoreAdminRequest storeAdminRequest) {
         invitationCodeService.validateInvitationCode(storeAdminRequest);
         StoreAdminResponse storeAdminResponse = storeAdminService.saveStoreAdmin(storeAdminRequest);
+        invitationCodeService.markCodeAsUsed(storeAdminRequest.getInvitationCode(),
+                storeAdminResponse.getUserId());
 
         final UserDetails userDetails =
                 userDetailsService.loadUserByUsername(storeAdminRequest.getEmail());
@@ -114,6 +116,8 @@ public class AuthController {
         invitationCodeService.validateInvitationCode(profecoAdminRequest);
         ProfecoAdminResponse profecoAdminResponse =
                 profecoAdminService.saveProfecoAdmin(profecoAdminRequest);
+        invitationCodeService.markCodeAsUsed(profecoAdminRequest.getInvitationCode(),
+                profecoAdminResponse.getUserId());
 
         final UserDetails userDetails =
                 userDetailsService.loadUserByUsername(profecoAdminRequest.getEmail());

@@ -20,5 +20,6 @@ public interface ProfecoAdminMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "email", source = "user.email")
+    @Mapping(target = "userId", source = "user.id")
     ProfecoAdminResponse toResponse(ProfecoAdmin profecoAdmin);
 }

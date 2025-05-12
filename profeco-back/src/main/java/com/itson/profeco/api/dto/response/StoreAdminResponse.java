@@ -11,8 +11,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StoreAdminResponse {
-    
+
     private UUID id;
+
+    private UUID userId;
 
     private String email;
 

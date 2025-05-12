@@ -37,6 +37,7 @@ public interface CustomerMapper {
             expression = "java(mapInconsistenciesToIds(customer.getInconsistencies()))")
     @Mapping(target = "wishesIds", expression = "java(mapWishesToIds(customer.getWishes()))")
     @Mapping(target = "rolesIds", expression = "java(mapRolesToIds(customer.getUser().getRoles()))")
+    @Mapping(target = "userId", source = "user.id") // Added mapping for userId
     CustomerResponse toResponse(Customer customer);
 
     default Set<UUID> mapRatingsToIds(java.util.List<Rating> ratings) {

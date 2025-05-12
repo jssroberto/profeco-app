@@ -15,6 +15,8 @@ public class CustomerResponse {
 
     private UUID id;
 
+    private UUID userId;
+
     private String email;
 
     private String name;

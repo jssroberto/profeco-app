@@ -46,7 +46,6 @@ public class StoreAdminService {
         StoreAdmin storeAdmin = storeAdminMapper.toEntity(storeAdminRequest);
         UserEntity user = storeAdmin.getUser();
 
-        // Encode the password before saving
         if (user != null && storeAdminRequest.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(storeAdminRequest.getPassword()));
         } else if (user == null) {

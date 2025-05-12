@@ -18,4 +18,5 @@ public interface AuthMapper {
 
     @Mapping(target = "accessToken", ignore = true)
     AuthResponse fromStoreAdminResponse(StoreAdminResponse storeAdminResponse);
+    
 }

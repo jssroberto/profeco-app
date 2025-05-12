@@ -25,6 +25,7 @@ public interface StoreAdminMapper {
     @Mapping(target = "email", source = "user.email")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "storeId", source = "store.id")
+    @Mapping(target = "userId", source = "user.id")
     StoreAdminResponse toResponse(StoreAdmin storeAdmin);
 
     @Named("mapStoreIdToStore")
