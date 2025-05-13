@@ -3,9 +3,15 @@ import { useAuth } from "../../context/AuthContext";
 import SearchBar from "../../components/Searchbar";
 import MostSearchedProducts from "../../components/MostSearchedProducts";
 import PopularSupermarkets from "../../components/PopularSupermarkets";
+import { useUser } from "../../context/UserContext";
 
 
 const HomePage: React.FC = () => {
+
+  /* prueba */
+  const {user: userData} = useUser();
+
+  console.log(userData?.email)
 
   const { user, role } = useAuth();
 

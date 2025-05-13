@@ -1,3 +1,5 @@
+/* En este context, se guardan los datos del access token al inciar sesion, se eliminan si se cierra sesion */
+
 import { createContext, useContext, useState, useEffect } from 'react';
 
 interface UserData {
@@ -46,7 +48,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (token) {
         try {
-          // Simple token check (you can add JWT decoding if needed)
           setState({
             isAuthenticated: true,
             role: storedRole,

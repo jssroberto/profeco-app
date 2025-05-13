@@ -15,57 +15,64 @@ import ProductInfo from "./pages/customers/ProductInfo";
 import ReportInconsistency from "./pages/customers/ReportInconsistency";
 import Negocios from "./pages/customers/Negocios";
 import Negociosinfo from "./pages/customers/NegocioInfo";
+import { UserProvider } from "./context/UserContext";
 
 function App() {
   return (
     <AuthProvider>
-      <div className="flex flex-col h-screen w-screen">
-        <Navbar />
-        <main className="flex-1 bg-white">
-          <Routes>
-            {/* public routes */}
-            <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register/customer" element={<Register />} />
-            <Route
-              path="/register/code-verification"
-              element={<AdminVerification />}
-            />
-            <Route
-              path="/register/store-admin"
-              element={<StoreAdminRegister />}
-            />
-            <Route
-              path="/register/profeco-admin"
-              element={<ProfecoAdminRegister />}
-            />
-            <Route path="/unauthorized" element={<UnauthorizedPage />} />
-
-            {/* routes for customer */}
-            <Route element={<RoleProtectedRoute allowedRoles={["CUSTOMER"]} />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/productos" element={<Productos />} />
-              <Route path="/productos/:id" element={<ProductInfo />} />
+      <UserProvider>
+        <div className="flex flex-col h-screen w-screen">
+          <Navbar />
+          <main className="flex-1 bg-white">
+            <Routes>
+              {/* public routes */}
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register/customer" element={<Register />} />
               <Route
-                path="/productos/:id/reportar"
-                element={<ReportInconsistency />}
+                path="/register/code-verification"
+                element={<AdminVerification />}
               />
-              <Route path="/negocios" element={<Negocios />} />
-              <Route path="/negocios/:id" element={<Negociosinfo />} />
-            </Route>
+              <Route
+                path="/register/store-admin"
+                element={<StoreAdminRegister />}
+              />
+              <Route
+                path="/register/profeco-admin"
+                element={<ProfecoAdminRegister />}
+              />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-            {/* routes for store admin */}
-            <Route
-              element={<RoleProtectedRoute allowedRoles={["STORE_ADMIN"]} />}
-            ></Route>
+              {/* routes for customer */}
+              <Route
+                element={<RoleProtectedRoute allowedRoles={["CUSTOMER"]} />}
+              >
+                <Route path="/" element={<HomePage />} />
+                <Route path="/productos" element={<Productos />} />
+                <Route path="/productos/:id" element={<ProductInfo />} />
+                <Route
+                  path="/productos/:id/reportar"
+                  element={<ReportInconsistency />}
+                />
+                <Route path="/negocios" element={<Negocios />} />
+                <Route path="/negocios/:id" element={<Negociosinfo />} />
+              </Route>
 
-            {/* routes for admin only */}
-            <Route
-              element={<RoleProtectedRoute allowedRoles={["PROFECO_ADMIN"]} />}
-            ></Route>
-          </Routes>
-        </main>
-      </div>
+              {/* routes for store admin */}
+              <Route
+                element={<RoleProtectedRoute allowedRoles={["STORE_ADMIN"]} />}
+              ></Route>
+
+              {/* routes for admin only */}
+              <Route
+                element={
+                  <RoleProtectedRoute allowedRoles={["PROFECO_ADMIN"]} />
+                }
+              ></Route>
+            </Routes>
+          </main>
+        </div>
+      </UserProvider>
     </AuthProvider>
   );
 }
