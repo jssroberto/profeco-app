@@ -77,7 +77,7 @@ const StoreAdminRegister: React.FC = () => {
       );
 
       login(response.data);
-      navigate('/');
+      navigate('/store-dashboard');
     } catch (error) {
       console.error('Registration failed:', error);
       alert('Registration failed. Please try again.');

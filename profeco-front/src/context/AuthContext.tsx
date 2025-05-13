@@ -1,33 +1,17 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-// Helper function to safely decode JWT
-const decodeJWT = (token: string) => {
-  try {
-    // Base64Url decode
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const decodedPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(decodedPayload);
-  } catch (e) {
-    console.error("Invalid token format", e);
-    return null;
-  }
-};
+interface UserData {
+  id: string;
+  email: string;
+  name: string;
+  userEntityId: string;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
   role: string | null;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    userEntityId: string;
-  } | null;
+  user: UserData | null;
+  isLoading: boolean;
   login: (authData: {
     accessToken: string;
     id: string;
@@ -42,36 +26,46 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
-  const [user, setUser] = useState<AuthContextType['user']>(null);
+  const [state, setState] = useState<{
+    isAuthenticated: boolean;
+    role: string | null;
+    user: UserData | null;
+    isLoading: boolean;
+  }>({
+    isAuthenticated: false,
+    role: null,
+    user: null,
+    isLoading: true
+  });
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    const storedRole = localStorage.getItem('userRole');
-    const storedUser = localStorage.getItem('userData');
-    
-    if (token) {
-      setIsAuthenticated(true);
-      setRole(storedRole);
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      } else {
+    const initializeAuth = () => {
+      const token = localStorage.getItem('accessToken');
+      const storedRole = localStorage.getItem('userRole');
+      const storedUser = localStorage.getItem('userData');
+
+      if (token) {
         try {
-          const payload = decodeJWT(token);
-          if (payload?.sub) {
-            setUser({
-              id: payload.sub,
-              email: payload.email || payload.sub,
-              name: payload.name || '',
-              userEntityId: payload.userEntityId || ''
-            });
-          }
+          // Simple token check (you can add JWT decoding if needed)
+          setState({
+            isAuthenticated: true,
+            role: storedRole,
+            user: storedUser ? JSON.parse(storedUser) : null,
+            isLoading: false
+          });
         } catch (e) {
-          console.error("Failed to parse token", e);
+          console.error("Auth initialization failed", e);
+          logout();
         }
+      } else {
+        setState(prev => ({
+          ...prev,
+          isLoading: false
+        }));
       }
-    }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (authData: {
@@ -83,21 +77,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userEntityId: string;
   }) => {
     localStorage.setItem('accessToken', authData.accessToken);
-    localStorage.setItem('userRole', authData.roles[0]); 
+    localStorage.setItem('userRole', authData.roles[0]);
     localStorage.setItem('userData', JSON.stringify({
       id: authData.id,
       email: authData.email,
       name: authData.name,
       userEntityId: authData.userEntityId
     }));
-    
-    setIsAuthenticated(true);
-    setRole(authData.roles[0]); 
-    setUser({
-      id: authData.id,
-      email: authData.email,
-      name: authData.name,
-      userEntityId: authData.userEntityId
+
+    setState({
+      isAuthenticated: true,
+      role: authData.roles[0],
+      user: {
+        id: authData.id,
+        email: authData.email,
+        name: authData.name,
+        userEntityId: authData.userEntityId
+      },
+      isLoading: false
     });
   };
 
@@ -105,13 +102,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userData');
-    setIsAuthenticated(false);
-    setRole(null);
-    setUser(null);
+    setState({
+      isAuthenticated: false,
+      role: null,
+      user: null,
+      isLoading: false
+    });
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, role, user, login, logout }}>
+    <AuthContext.Provider value={{
+      ...state,
+      login,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );

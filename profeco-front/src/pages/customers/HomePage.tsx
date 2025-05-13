@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
-import SearchBar from "../components/Searchbar";
-import MostSearchedProducts from "../components/MostSearchedProducts";
-import PopularSupermarkets from "../components/PopularSupermarkets";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
+import SearchBar from "../../components/Searchbar";
+import MostSearchedProducts from "../../components/MostSearchedProducts";
+import PopularSupermarkets from "../../components/PopularSupermarkets";
+
 
 const HomePage: React.FC = () => {
 

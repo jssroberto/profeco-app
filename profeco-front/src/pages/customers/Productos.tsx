@@ -1,6 +1,7 @@
 import React from "react";
-import SearchProducts from "../components/SearchProducts";
-import SearchBar from "../components/Searchbar";
+import SearchBar from "../../components/Searchbar";
+import SearchProducts from "../../components/SearchProducts";
+
 
 const Productos: React.FC = () => {
   return (

@@ -1,6 +1,6 @@
 import React from "react";
-import PopularSupermarkets from "../components/PopularSupermarkets";
-import SearchBar from "../components/Searchbar";
+import SearchBar from "../../components/Searchbar";
+import PopularSupermarkets from "../../components/PopularSupermarkets";
 
 const Negocios: React.FC = () => {
   return (

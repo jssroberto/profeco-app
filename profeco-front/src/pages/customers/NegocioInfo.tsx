@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import BusinessHeader from '../components/negocios/BusinessHeader';
-import OffersSection from '../components/negocios/OfferSection';
-import ProductsSection from '../components/negocios/ProductsSection';
-import ReviewSection from '../components/negocios/ReviewSection';
+import BusinessHeader from '../../components/negocios/BusinessHeader';
+import OffersSection from '../../components/negocios/OfferSection';
+import ProductsSection from '../../components/negocios/ProductsSection';
+import ReviewSection from '../../components/negocios/ReviewSection';
+
 
 
 const Negociosinfo = () => {

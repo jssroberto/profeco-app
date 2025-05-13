@@ -1,7 +1,7 @@
 import { Heart } from "lucide-react";
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
 import { Link } from "react-router-dom";
+import Button from "../../components/ui/Button";
+import Card from "../../components/ui/Card";
 
 const ProductInfo = () => {
   return (

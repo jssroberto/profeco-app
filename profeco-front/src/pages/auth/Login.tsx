@@ -55,7 +55,14 @@ const Login: React.FC = () => {
 
       if (response.status === 200) {
         login(response.data);
-        navigate("/");
+        const role = response.data.roles[0];
+        if(role === "PROFECO_ADMIN") {
+          navigate("/admin-dashboard");
+        } else if(role === "STORE_ADMIN") {
+          navigate("/store-dashboard")
+        } else {
+          navigate("/")
+        }
       } else {
         if (response.status === 401) {
           setErrors((prev) => ({

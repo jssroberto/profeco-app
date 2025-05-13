@@ -75,7 +75,7 @@ const ProfecoAdminRegister: React.FC = () => {
       );
 
       login(response.data);
-      navigate('/');
+      navigate('/admin-dashboard');
     } catch (error) {
       console.error('Registration failed:', error);
       alert('Registration failed. Please try again.');
