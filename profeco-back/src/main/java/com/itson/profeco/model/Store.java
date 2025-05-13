@@ -32,6 +32,9 @@ public class Store {
     @Column(nullable = false, length = 150)
     private String location;
 
+    @Column(nullable = false)
+    private String imageUrl;
+
     @OneToMany(mappedBy = "store")
     private List<StoreProduct> products = new ArrayList<>();
 

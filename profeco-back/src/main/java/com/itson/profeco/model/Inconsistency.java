@@ -41,8 +41,5 @@ public class Inconsistency {
     private Customer customer;
 
     @ManyToOne
-    private Product product;
-
-    @ManyToOne
-    private Store store;
+    private StoreProduct storeProduct;
 }

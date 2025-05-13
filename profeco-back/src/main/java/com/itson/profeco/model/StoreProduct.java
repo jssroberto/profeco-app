@@ -1,6 +1,7 @@
 package com.itson.profeco.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,6 +31,12 @@ public class StoreProduct {
 
     @Column(nullable = true)
     private BigDecimal offerPrice;
+
+    @Column(nullable = true)
+    private LocalDate offerStartDate;
+
+    @Column(nullable = true)
+    private LocalDate offerEndDate;
 
     @ManyToOne
     private Store store;

@@ -27,6 +27,9 @@ public class Product {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(nullable = false)
+    private String imageUrl;
+
     @ManyToOne
     private ProductCategory category;
 

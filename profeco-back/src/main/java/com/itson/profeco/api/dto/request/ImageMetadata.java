@@ -1,4 +1,4 @@
-package com.itson.profeco.api.dto.response;
+package com.itson.profeco.api.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,14 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImageResponse {
-
-    private String filename;
-
-    private String url;
-
+public class ImageMetadata {
     private String name;
-
     private String description;
-
 }
