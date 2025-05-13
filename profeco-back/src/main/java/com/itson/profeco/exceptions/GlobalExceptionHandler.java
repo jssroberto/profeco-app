@@ -1,8 +1,10 @@
 package com.itson.profeco.exceptions;
 
+import java.nio.file.AccessDeniedException;
+import java.util.stream.Collectors;
+import javax.naming.AuthenticationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -10,18 +12,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.naming.AuthenticationException;
-import java.nio.file.AccessDeniedException;
-import java.util.stream.Collectors;
-
 @ControllerAdvice
 @RestController
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({
-            InvalidInvitationCodeException.class,
-            IllegalArgumentException.class
-    })
+    @ExceptionHandler({InvalidInvitationCodeException.class, IllegalArgumentException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestExceptions(RuntimeException ex) {
         return new ErrorResponse(ex.getMessage());
@@ -36,11 +31,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationExceptions(MethodArgumentNotValidException ex) {
-        String errorMessage = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining(", "));
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage).collect(Collectors.joining(", "));
         return new ErrorResponse(errorMessage);
     }
 

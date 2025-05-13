@@ -2,9 +2,9 @@ package com.itson.profeco.service;
 
 import java.util.Set;
 import java.util.UUID;
-import com.itson.profeco.security.CustomUserDetails;
-import org.apache.catalina.User;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +17,6 @@ import com.itson.profeco.model.UserEntity;
 import com.itson.profeco.repository.CustomerRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @RequiredArgsConstructor
@@ -34,15 +32,19 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public CustomerResponse getCurrentCustomer() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new IllegalStateException("There is no authenticated user to get the current client.");
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new IllegalStateException(
+                    "There is no authenticated user to get the current client.");
         }
         String username = authentication.getName();
         if (username == null || username.isEmpty()) {
-            throw new IllegalStateException("The authenticated user's email could not be determined.");
+            throw new IllegalStateException(
+                    "The authenticated user's email could not be determined.");
         }
         Customer customer = customerRepository.findByUser_Email(username)
-                .orElseThrow(() -> new EntityNotFoundException("Client not found for authenticated user: " + username));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Client not found for authenticated user: " + username));
         return customerMapper.toResponse(customer);
     }
 
@@ -55,7 +57,8 @@ public class CustomerService {
             throw new IllegalStateException("User entity not found.");
         }
         if (customerRepository.findByUser_Email(user.getEmail()).isPresent()) {
-            throw new DataIntegrityViolationException("A client with the email '" + user.getEmail() + "'already exists.");
+            throw new DataIntegrityViolationException(
+                    "A client with the email '" + user.getEmail() + "'already exists.");
         }
         if (customerRequest.getPassword() != null && !customerRequest.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(customerRequest.getPassword()));
@@ -70,14 +73,16 @@ public class CustomerService {
 
     @Transactional
     public CustomerResponse updateCustomer(UUID id, CustomerRequest customerRequest) {
-        Customer existingCustomer = customerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + id));
+        Customer existingCustomer = customerRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Customer not found with id: " + id));
         customerMapper.updateEntityFromRequest(customerRequest, existingCustomer);
         if (customerRequest.getPassword() != null && !customerRequest.getPassword().isEmpty()) {
             if (existingCustomer.getUser() != null) {
-                existingCustomer.getUser().setPassword(passwordEncoder.encode(customerRequest.getPassword()));
+                existingCustomer.getUser()
+                        .setPassword(passwordEncoder.encode(customerRequest.getPassword()));
             } else {
-                throw new IllegalStateException("The password cannot be updated, the client does not have an associated user.");
+                throw new IllegalStateException(
+                        "The password cannot be updated, the client does not have an associated user.");
             }
         }
         Customer savedCustomer = customerRepository.save(existingCustomer);
@@ -86,8 +91,8 @@ public class CustomerService {
 
     @Transactional
     public void deleteCustomer(UUID id) {
-        Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found with id: " + id));
+        Customer customer = customerRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Customer not found with id: " + id));
 
         customerRepository.delete(customer);
     }
