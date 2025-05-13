@@ -3,6 +3,9 @@ package com.itson.profeco.service;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +30,26 @@ public class StoreAdminService {
     private final RoleService roleService;
 
     private static final String DEFAULT_USER_ROLE = "STORE_ADMIN";
+
+    @Transactional(readOnly = true)
+    public StoreAdminResponse getCurrentStoreAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new IllegalStateException("No hay un usuario autenticado");
+        }
+
+        String username = authentication.getName();
+        if (username == null || username.isEmpty()) {
+            throw new IllegalStateException("No se pudo determinar el email del usuario autenticado");
+        }
+
+        StoreAdmin storeAdmin = storeAdminRepository.findByUser_Email(username)
+                .orElseThrow(() -> new EntityNotFoundException("StoreAdmin no encontrado para el usuario: " + username));
+
+        return storeAdminMapper.toResponse(storeAdmin);
+    }
+
 
 
     @Transactional
@@ -85,12 +108,6 @@ public class StoreAdminService {
         storeAdminRepository.deleteById(id);
     }
 
-    @Transactional(readOnly = true)
-    public StoreAdminResponse getStoreAdminByEmail(String email) {
-        StoreAdmin storeAdmin = storeAdminRepository.findByUser_Email(email).orElseThrow(
-                () -> new EntityNotFoundException("StoreAdmin not found for user email: " + email));
-        return storeAdminMapper.toResponse(storeAdmin);
-    }
 
 
 
@@ -103,6 +120,12 @@ public class StoreAdminService {
 
 
 
+//    @Transactional(readOnly = true)
+//    public StoreAdminResponse getStoreAdminByEmail(String email) {
+//        StoreAdmin storeAdmin = storeAdminRepository.findByUser_Email(email).orElseThrow(
+//                () -> new EntityNotFoundException("StoreAdmin not found for user email: " + email));
+//        return storeAdminMapper.toResponse(storeAdmin);
+//    }
 
 //    @Transactional(readOnly = true)
 //    public List<StoreAdminResponse> getAllStoreAdmins() {

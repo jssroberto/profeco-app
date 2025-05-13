@@ -1,5 +1,6 @@
 package com.itson.profeco.model;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -27,6 +28,9 @@ public class Wish {
 
     @Column(nullable = false)
     private String description;
+
+    @Column(nullable = false)
+    private LocalDate date;
 
     @ManyToOne
     private Store store;

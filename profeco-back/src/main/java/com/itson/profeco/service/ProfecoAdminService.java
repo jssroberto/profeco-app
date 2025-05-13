@@ -3,6 +3,11 @@ package com.itson.profeco.service;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import com.itson.profeco.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,73 +33,86 @@ public class ProfecoAdminService {
     private static final String DEFAULT_USER_ROLE = "PROFECO_ADMIN";
 
     @Transactional(readOnly = true)
-    public List<ProfecoAdminResponse> getAllProfecoAdmins() {
-        List<ProfecoAdmin> profecoAdmins = profecoAdminRepository.findAll();
-        return profecoAdmins.stream().map(profecoAdminMapper::toResponse).toList();
-    }
+    public ProfecoAdminResponse getCurrentProfecoAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new IllegalStateException("No authenticated admin user found");
+        }
 
-    @Transactional(readOnly = true)
-    public ProfecoAdminResponse getProfecoAdminById(UUID id) {
-        ProfecoAdmin profecoAdmin = profecoAdminRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("ProfecoAdmin not found with id: " + id));
-        return profecoAdminMapper.toResponse(profecoAdmin);
+        String username = authentication.getName();
+        ProfecoAdmin admin = profecoAdminRepository.findByUser_Email(username)
+                .orElseThrow(() -> new EntityNotFoundException("Profeco admin not found for user: " + username));
+
+        return profecoAdminMapper.toResponse(admin);
     }
 
     @Transactional
-    public ProfecoAdminResponse saveProfecoAdmin(ProfecoAdminRequest profecoAdminRequest) {
-        ProfecoAdmin profecoAdmin = profecoAdminMapper.toEntity(profecoAdminRequest);
-        UserEntity user = profecoAdmin.getUser();
-
-        // Encode the password before saving
-        if (user != null && profecoAdminRequest.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(profecoAdminRequest.getPassword()));
-        } else if (user == null) {
-            throw new IllegalStateException("User entity was not created for profeco admin.");
+    public ProfecoAdminResponse saveProfecoAdmin(ProfecoAdminRequest request) {
+        if (profecoAdminRepository.findByUser_Email(request.getEmail()).isPresent()) {
+            throw new DataIntegrityViolationException("Profeco admin with email " + request.getEmail() + " already exists");
         }
+        ProfecoAdmin admin = profecoAdminMapper.toEntity(request);
+        UserEntity user = admin.getUser();
 
-        Role defaultRole = roleService.getRoleEntityByName(DEFAULT_USER_ROLE);
-        user.setRoles(Set.of(defaultRole));
+        if (user == null) {
+            throw new IllegalStateException("User entity not created for profeco admin");
+        }
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be empty");
+        }
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        ProfecoAdmin savedProfecoAdmin = profecoAdminRepository.save(profecoAdmin);
-        return profecoAdminMapper.toResponse(savedProfecoAdmin);
+        Role adminRole = roleService.getRoleEntityByName(DEFAULT_USER_ROLE);
+        user.setRoles(Set.of(adminRole));
+
+        return profecoAdminMapper.toResponse(profecoAdminRepository.save(admin));
     }
 
     @Transactional
-    public ProfecoAdminResponse updateProfecoAdmin(UUID id,
-            ProfecoAdminRequest profecoAdminRequest) {
-        ProfecoAdmin profecoAdminToUpdate = profecoAdminRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("ProfecoAdmin not found with id: " + id));
+    public ProfecoAdminResponse updateProfecoAdmin(UUID id, ProfecoAdminRequest request) {
+        ProfecoAdmin existingAdmin = profecoAdminRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Profeco admin not found with id: " + id));
 
-        // Update fields from request
-        profecoAdminToUpdate.setName(profecoAdminRequest.getName());
-        if (profecoAdminToUpdate.getUser() != null) {
-            profecoAdminToUpdate.getUser().setEmail(profecoAdminRequest.getEmail());
-            // Optionally update password if provided and not blank
-            if (profecoAdminRequest.getPassword() != null
-                    && !profecoAdminRequest.getPassword().isBlank()) {
-                profecoAdminToUpdate.getUser()
-                        .setPassword(passwordEncoder.encode(profecoAdminRequest.getPassword()));
-            }
+        profecoAdminMapper.updateEntityFromRequest(request, existingAdmin);
+
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            existingAdmin.getUser().setPassword(passwordEncoder.encode(request.getPassword()));
         }
-
-        ProfecoAdmin updatedProfecoAdmin = profecoAdminRepository.save(profecoAdminToUpdate);
-        return profecoAdminMapper.toResponse(updatedProfecoAdmin);
+        return profecoAdminMapper.toResponse(profecoAdminRepository.save(existingAdmin));
     }
 
     @Transactional
     public void deleteProfecoAdmin(UUID id) {
-        if (!profecoAdminRepository.existsById(id)) {
-            throw new EntityNotFoundException("ProfecoAdmin not found with id: " + id);
-        }
-        profecoAdminRepository.deleteById(id);
+        ProfecoAdmin admin = profecoAdminRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ProfecoAdmin not found with id: " + id));
+
+        UserEntity user = admin.getUser();
+        profecoAdminRepository.delete(admin);
     }
 
-    @Transactional(readOnly = true)
-    public ProfecoAdminResponse getProfecoAdminByEmail(String email) {
-        ProfecoAdmin profecoAdmin = profecoAdminRepository.findByUser_Email(email)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "ProfecoAdmin not found for user email: " + email));
-        return profecoAdminMapper.toResponse(profecoAdmin);
-    }
-    
+    //cárcel de métodos
+//    @Transactional(readOnly = true)
+//    public ProfecoAdminResponse getProfecoAdminByEmail(String email) {
+//        return profecoAdminMapper.toResponse(
+//                profecoAdminRepository.findByUser_Email(email)
+//                        .orElseThrow(() -> new EntityNotFoundException("ProfecoAdmin not found with email: " + email))
+//        );
+//    }
+//
+//
+//    @Transactional(readOnly = true)
+//    public List<ProfecoAdminResponse> getAllProfecoAdmins() {
+//        return profecoAdminRepository.findAll().stream()
+//                .map(profecoAdminMapper::toResponse)
+//                .toList();
+//    }
+//
+//    @Transactional(readOnly = true)
+//    public ProfecoAdminResponse getProfecoAdminById(UUID id) {
+//        return profecoAdminMapper.toResponse(
+//                profecoAdminRepository.findById(id)
+//                        .orElseThrow(() -> new EntityNotFoundException("ProfecoAdmin not found with id: " + id))
+//        );
+//    }
+
 }
