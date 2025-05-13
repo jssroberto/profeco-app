@@ -19,15 +19,12 @@ public interface StoreMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "products", ignore = true)
     @Mapping(target = "ratings", ignore = true)
-    @Mapping(target = "inconsistencies", ignore = true)
     @Mapping(target = "wishes", ignore = true)
     Store toEntity(StoreRequest request);
 
     @Mapping(target = "productsIds",
             expression = "java(mapStoreProductsToIds(store.getProducts()))")
     @Mapping(target = "ratingsIds", expression = "java(mapRatingsToIds(store.getRatings()))")
-    @Mapping(target = "inconsistenciesIds",
-            expression = "java(mapInconsistenciesToIds(store.getInconsistencies()))")
     @Mapping(target = "wishesIds", expression = "java(mapWishesToIds(store.getWishes()))")
     StoreResponse toResponse(Store store);
 

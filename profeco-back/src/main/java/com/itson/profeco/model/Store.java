@@ -42,9 +42,6 @@ public class Store {
     private List<Rating> ratings = new ArrayList<>();
 
     @OneToMany(mappedBy = "store")
-    private List<Inconsistency> inconsistencies = new ArrayList<>();
-
-    @OneToMany(mappedBy = "store")
     private List<Wish> wishes = new ArrayList<>();
 
 }

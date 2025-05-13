@@ -13,6 +13,7 @@ import com.itson.profeco.model.Rating;
 import com.itson.profeco.model.Role;
 import com.itson.profeco.model.Wish;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Mappings;
 
 @Mapper(componentModel = "spring")
 public interface CustomerMapper {
@@ -38,9 +39,17 @@ public interface CustomerMapper {
             expression = "java(mapInconsistenciesToIds(customer.getInconsistencies()))")
     @Mapping(target = "wishesIds", expression = "java(mapWishesToIds(customer.getWishes()))")
     @Mapping(target = "rolesIds", expression = "java(mapRolesToIds(customer.getUser().getRoles()))")
-    @Mapping(target = "userId", source = "user.id") // Added mapping for userId
+    @Mapping(target = "userId", source = "user.id")
     CustomerResponse toResponse(Customer customer);
 
+
+    @Mapping(source = "name", target = "name")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "preference", ignore = true)
+    @Mapping(target = "ratings", ignore = true)
+    @Mapping(target = "inconsistencies", ignore = true)
+    @Mapping(target = "wishes", ignore = true)
     void updateEntityFromRequest(CustomerRequest request, @MappingTarget Customer entity);
 
     default Set<UUID> mapRatingsToIds(java.util.List<Rating> ratings) {
