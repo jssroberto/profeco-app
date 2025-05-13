@@ -6,20 +6,16 @@ import { useAuth } from "../context/AuthContext";
 
 const HomePage: React.FC = () => {
 
-  /* const { role } = useAuth();
+  const { user, role } = useAuth();
 
-  useEffect(() => {
-    console.log('Current user role:', role);
-  }, [role]);
-
- */
+  console.log("logged as ", role)
 
   return (
     <div className="pt-26 px-4 sm:px-6 lg:px-8 min-h-screen bg-white">
       <div className="max-w-7xl mx-auto">
 
         {/* Section #1 : title with searchbar */}
-        <h1 className="text-3xl font-bold text-black mb-6">Bienvenido!</h1>
+        <h1 className="text-3xl font-bold text-black mb-6">Bienvenido, {user ? user.name : "usuario"}!</h1>
         <div className="w-full max-w-3xl">
           <SearchBar
             context="global"

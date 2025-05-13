@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -59,8 +61,8 @@ const Register: React.FC = () => {
         }
       );
 
-      console.log('Registration successful:', response.data);
-      localStorage.setItem('accessToken', response.data.accessToken);
+      login(response.data);
+
       navigate('/');
     } catch (error) {
       console.error('Registration failed:', error);

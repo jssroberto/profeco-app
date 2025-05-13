@@ -7,3 +7,5 @@ COPY pom.xml ./
 RUN mvn dependency:go-offline
 
 EXPOSE 8080
+
+CMD sh -c "mvn spring-boot:run -Dspring-boot.run.fork=false -Dspring-boot.run.jvmArguments='-Dspring.devtools.restart.enabled=true'"

@@ -9,9 +9,9 @@ const Login: React.FC = () => {
   const [errors, setErrors] = useState({
     email: "",
     password: "",
-    form: "", // Added form-level error
+    form: "", 
   });
-  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -53,16 +53,11 @@ const Login: React.FC = () => {
         { validateStatus: (status) => status < 500 }
       );
 
-      // debug section lol
-      const token = response.data.accessToken;
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      console.log("JWT Payload:", payload);
-
       if (response.status === 200) {
-        login(token);
+        login(response.data);
         navigate("/");
       } else {
-        if (response.status === 403) {
+        if (response.status === 401) {
           setErrors((prev) => ({
             ...prev,
             form: "Email o contraseña incorrectos",

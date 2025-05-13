@@ -74,7 +74,7 @@ const ProfecoAdminRegister: React.FC = () => {
         }
       );
 
-      login(response.data.accessToken, 'PROFECO_ADMIN');
+      login(response.data);
       navigate('/');
     } catch (error) {
       console.error('Registration failed:', error);

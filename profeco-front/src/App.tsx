@@ -11,7 +11,6 @@ import ProtectedRoute from "./pages/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
-import AdminRegister from "./pages/auth/AdminRegister";
 import AdminVerification from "./pages/auth/AdminVerification";
 import StoreAdminRegister from "./pages/auth/StoreAdminRegister";
 import ProfecoAdminRegister from "./pages/auth/ProfecoAdminRegister";

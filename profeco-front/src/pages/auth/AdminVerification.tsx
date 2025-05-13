@@ -33,12 +33,12 @@ const AdminVerification: React.FC = () => {
         navigate('/register/store-admin', { 
           state: { 
             invitationCode: response.data.code,
-            roleId: response.data.roleId // For store admin registration
+            roleId: response.data.roleId // 
           } 
         });
       }
     } catch (err) {
-      setError('Invalid verification code or the code has expired');
+      setError('El codigo no es valido');
       console.error('Verification failed:', err);
     } finally {
       setIsLoading(false);

@@ -76,7 +76,7 @@ const StoreAdminRegister: React.FC = () => {
         }
       );
 
-      login(response.data.accessToken, 'STORE_ADMIN');
+      login(response.data);
       navigate('/');
     } catch (error) {
       console.error('Registration failed:', error);
