@@ -2,6 +2,7 @@ package com.itson.profeco.service;
 
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,7 +28,8 @@ public class StoreAdminService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    private static final String DEFAULT_USER_ROLE = "STORE_ADMIN";
+    @Value("${store.admin.default-role}")
+    private String DEFAULT_USER_ROLE;
 
     @Transactional(readOnly = true)
     public StoreAdminResponse getCurrentStoreAdmin() {

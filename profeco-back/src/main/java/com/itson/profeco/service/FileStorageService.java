@@ -61,7 +61,8 @@ public class FileStorageService {
                     .toAbsolutePath();
 
             if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
-                throw new RuntimeException("Cannot store file outside designated directory " + uniqueFilename);
+                throw new RuntimeException(
+                        "Cannot store file outside designated directory " + uniqueFilename);
             }
 
             try (InputStream inputStream = file.getInputStream()) {

@@ -1,5 +1,22 @@
-{"properties": [{
-  "name": "file.upload-dir",
-  "type": "java.lang.String",
-  "description": "The directory where files are uploaded"
-}]}
+{"properties": [
+  {
+    "name": "file.upload-dir",
+    "type": "java.lang.String",
+    "description": "The directory where files are uploaded"
+  },
+  {
+    "name": "customer.default-role",
+    "type": "java.lang.String",
+    "description": "A description for 'customer.default-role'"
+  },
+  {
+    "name": "store.admin.default-role",
+    "type": "java.lang.String",
+    "description": "A description for 'store.admin.default-role'"
+  },
+  {
+    "name": "profeco.admin.default-role",
+    "type": "java.lang.String",
+    "description": "A description for 'profeco.admin.default-role'"
+  }
+]}

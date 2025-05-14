@@ -23,7 +23,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${DEFAULT_USER}
       SPRING_DATASOURCE_PASSWORD: ${DEFAULT_PASSWORD}
-      # SPRING_PROFILES_ACTIVE: dev
     depends_on:
       - postgres
       - rabbitmq

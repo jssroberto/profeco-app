@@ -8,10 +8,10 @@ import lombok.Getter;
 
 @Getter
 public class CustomUserDetails extends User {
+    
     private final UUID specificUserId;
     private final String specificName;
     private final UUID genericUserId;
-
 
     public CustomUserDetails(String username, String password,
             Collection<? extends GrantedAuthority> authorities, UUID genericUserId,

@@ -1,7 +1,7 @@
 package com.itson.profeco.service;
 
 import java.util.Set;
-import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,20 +27,23 @@ public class ProfecoAdminService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    private static final String DEFAULT_USER_ROLE = "PROFECO_ADMIN";
+    @Value("${profeco.admin.default-role}")
+    private String defaultUserRole;
 
-    @Transactional(readOnly = true)
-    public ProfecoAdminResponse getCurrentProfecoAdmin() {
+    private ProfecoAdmin getAuthenticatedAdminEntity() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new IllegalStateException("No authenticated admin user found");
         }
-
         String username = authentication.getName();
-        ProfecoAdmin admin = profecoAdminRepository.findByUser_Email(username).orElseThrow(
+        return profecoAdminRepository.findByUser_Email(username).orElseThrow(
                 () -> new EntityNotFoundException("Profeco admin not found for user: " + username));
+    }
 
+    @Transactional(readOnly = true)
+    public ProfecoAdminResponse getCurrentProfecoAdmin() {
+        ProfecoAdmin admin = getAuthenticatedAdminEntity();
         return profecoAdminMapper.toResponse(admin);
     }
 
@@ -61,16 +64,15 @@ public class ProfecoAdminService {
         }
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        Role adminRole = roleService.getRoleEntityByName(DEFAULT_USER_ROLE);
+        Role adminRole = roleService.getRoleEntityByName(defaultUserRole);
         user.setRoles(Set.of(adminRole));
 
         return profecoAdminMapper.toResponse(profecoAdminRepository.save(admin));
     }
 
     @Transactional
-    public ProfecoAdminResponse updateProfecoAdmin(UUID id, ProfecoAdminRequest request) {
-        ProfecoAdmin existingAdmin = profecoAdminRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Profeco admin not found with id: " + id));
+    public ProfecoAdminResponse updateCurrentProfecoAdmin(ProfecoAdminRequest request) {
+        ProfecoAdmin existingAdmin = getAuthenticatedAdminEntity();
 
         profecoAdminMapper.updateEntityFromRequest(request, existingAdmin);
 
@@ -81,38 +83,9 @@ public class ProfecoAdminService {
     }
 
     @Transactional
-    public void deleteProfecoAdmin(UUID id) {
-        ProfecoAdmin admin = profecoAdminRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("ProfecoAdmin not found with id: " + id));
-
-        UserEntity user = admin.getUser();
+    public void deleteCurrentProfecoAdmin() {
+        ProfecoAdmin admin = getAuthenticatedAdminEntity();
         profecoAdminRepository.delete(admin);
     }
-
-    // cárcel de métodos
-    // @Transactional(readOnly = true)
-    // public ProfecoAdminResponse getProfecoAdminByEmail(String email) {
-    // return profecoAdminMapper.toResponse(
-    // profecoAdminRepository.findByUser_Email(email)
-    // .orElseThrow(() -> new EntityNotFoundException("ProfecoAdmin not found with email: " +
-    // email))
-    // );
-    // }
-    //
-    //
-    // @Transactional(readOnly = true)
-    // public List<ProfecoAdminResponse> getAllProfecoAdmins() {
-    // return profecoAdminRepository.findAll().stream()
-    // .map(profecoAdminMapper::toResponse)
-    // .toList();
-    // }
-    //
-    // @Transactional(readOnly = true)
-    // public ProfecoAdminResponse getProfecoAdminById(UUID id) {
-    // return profecoAdminMapper.toResponse(
-    // profecoAdminRepository.findById(id)
-    // .orElseThrow(() -> new EntityNotFoundException("ProfecoAdmin not found with id: " + id))
-    // );
-    // }
 
 }

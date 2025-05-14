@@ -1,7 +1,7 @@
 package com.itson.profeco.service;
 
 import java.util.Set;
-import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,14 +27,14 @@ public class CustomerService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    private static final String DEFAULT_USER_ROLE = "CUSTOMER";
+    @Value("${customer.default-role}")
+    private String DEFAULT_USER_ROLE;
 
     private Customer getAuthenticatedCustomerEntity() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new IllegalStateException(
-                    "There is no authenticated user.");
+            throw new IllegalStateException("There is no authenticated user.");
         }
         String username = authentication.getName();
         if (username == null || username.isEmpty()) {
@@ -82,7 +82,8 @@ public class CustomerService {
         UserEntity user = customer.getUser();
 
         if (user == null) {
-            throw new IllegalStateException("User entity cannot be null when creating a new customer.");
+            throw new IllegalStateException(
+                    "User entity cannot be null when creating a new customer.");
         }
 
         if (customerRepository.findByUser_Email(user.getEmail()).isPresent()) {
@@ -103,30 +104,30 @@ public class CustomerService {
         return customerMapper.toResponse(savedCustomer);
     }
 
-//    @Transactional
-//    public CustomerResponse updateCustomer(UUID id, CustomerRequest customerRequest) {
-//        Customer existingCustomer = customerRepository.findById(id).orElseThrow(
-//                () -> new EntityNotFoundException("Customer not found with id: " + id));
-//
-//        customerMapper.updateEntityFromRequest(customerRequest, existingCustomer);
-//
-//        if (customerRequest.getPassword() != null && !customerRequest.getPassword().isEmpty()) {
-//            if (existingCustomer.getUser() != null) {
-//                existingCustomer.getUser()
-//                        .setPassword(passwordEncoder.encode(customerRequest.getPassword()));
-//            } else {
-//                throw new IllegalStateException(
-//                        "The password cannot be updated, the customer does not have an associated user.");
-//            }
-//        }
-//        Customer savedCustomer = customerRepository.save(existingCustomer);
-//        return customerMapper.toResponse(savedCustomer);
-//    }
-//
-//    @Transactional
-//    public void deleteCustomer(UUID id) {
-//        Customer customer = customerRepository.findById(id).orElseThrow(
-//                () -> new EntityNotFoundException("Customer not found with id: " + id));
-//        customerRepository.delete(customer);
-//    }
+    // @Transactional
+    // public CustomerResponse updateCustomer(UUID id, CustomerRequest customerRequest) {
+    // Customer existingCustomer = customerRepository.findById(id).orElseThrow(
+    // () -> new EntityNotFoundException("Customer not found with id: " + id));
+    //
+    // customerMapper.updateEntityFromRequest(customerRequest, existingCustomer);
+    //
+    // if (customerRequest.getPassword() != null && !customerRequest.getPassword().isEmpty()) {
+    // if (existingCustomer.getUser() != null) {
+    // existingCustomer.getUser()
+    // .setPassword(passwordEncoder.encode(customerRequest.getPassword()));
+    // } else {
+    // throw new IllegalStateException(
+    // "The password cannot be updated, the customer does not have an associated user.");
+    // }
+    // }
+    // Customer savedCustomer = customerRepository.save(existingCustomer);
+    // return customerMapper.toResponse(savedCustomer);
+    // }
+    //
+    // @Transactional
+    // public void deleteCustomer(UUID id) {
+    // Customer customer = customerRepository.findById(id).orElseThrow(
+    // () -> new EntityNotFoundException("Customer not found with id: " + id));
+    // customerRepository.delete(customer);
+    // }
 }
