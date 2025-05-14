@@ -47,4 +47,16 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleAccessDeniedException(AccessDeniedException ex) {
         return new ErrorResponse("No tienes permiso para acceder a este recurso");
     }
+
+    @ExceptionHandler(InvalidDataException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleInvalidDataException(InvalidDataException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFoundException(NotFoundException e) {
+        return new ErrorResponse(e.getMessage());
+    }
 }

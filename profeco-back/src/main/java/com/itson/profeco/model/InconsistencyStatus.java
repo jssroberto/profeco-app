@@ -26,4 +26,6 @@ public class InconsistencyStatus {
 
     @Column(nullable = false, length = 50, unique = true)
     private String name;
+
+    // TODO: opened, closed
 }
