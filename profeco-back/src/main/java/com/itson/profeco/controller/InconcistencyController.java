@@ -49,6 +49,7 @@ public class InconcistencyController {
     }
 
     @PatchMapping()
+    @PreAuthorize("hasRole('PROFECO')") // TODO: Check later about ROLE_ADMIN or ROLE_PROFECO
     public Inconsistency update(@RequestBody UpdateInconsistencyStatusRequest request) throws NotFoundException {
         return this.inconsistencyService.update(request);
     }
