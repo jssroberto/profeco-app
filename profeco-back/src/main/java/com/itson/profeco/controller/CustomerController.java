@@ -32,25 +32,26 @@ public class CustomerController {
         return ResponseEntity.ok(customer);
     }
 
-    @Operation(summary = "Update customer", description = "Updates an existing customer.")
+    @Operation(summary = "Update current customer", description = "Updates the currently authenticated customer.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Customer updated successfully"),
             @ApiResponse(responseCode = "404", description = "Customer not found")})
-    @PutMapping("/{id}")
-    public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable UUID id,
-                                                           @Valid @RequestBody CustomerRequest customerRequest) {
-        CustomerResponse response = customerService.updateCustomer(id, customerRequest);
+    @PutMapping("/me")
+    public ResponseEntity<CustomerResponse> updateCurrentCustomer(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody CustomerRequest customerRequest) {
+        CustomerResponse response = customerService.updateCurrentCustomer(customerRequest);
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Delete customer", description = "Deletes a customer by their ID.")
+    @Operation(summary = "Delete current customer", description = "Deletes the currently authenticated customer.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Customer deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Customer not found")})
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable UUID id) {
-        customerService.deleteCustomer(id);
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteCurrentCustomer(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        customerService.deleteCurrentCustomer();
         return ResponseEntity.noContent().build();
     }
-
 }
