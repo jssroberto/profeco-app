@@ -35,7 +35,7 @@ public class StoreService {
     @Transactional
     public StoreResponse saveStore(StoreRequest storeRequest, String imageUrl) {
         Store store = storeMapper.toEntity(storeRequest);
-        store.setImageUrl(imageUrl); // Set the imageUrl on the entity
+        store.setImageUrl(imageUrl);
         Store savedStore = storeRepository.save(store);
         return storeMapper.toResponse(savedStore);
     }
@@ -46,7 +46,7 @@ public class StoreService {
             throw new EntityNotFoundException("Store not found with id: " + id);
         }
         Store storeToUpdate = storeMapper.toEntity(storeRequest);
-        storeToUpdate.setId(id); // Ensure the ID is set for update
+        storeToUpdate.setId(id);
         Store updatedStore = storeRepository.save(storeToUpdate);
         return storeMapper.toResponse(updatedStore);
     }
