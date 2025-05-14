@@ -16,6 +16,9 @@ import ReportInconsistency from "./pages/customers/ReportInconsistency";
 import Negocios from "./pages/customers/Negocios";
 import Negociosinfo from "./pages/customers/NegocioInfo";
 import { UserProvider } from "./context/UserContext";
+import { AdminDashboard } from "./pages/storeAdmins/AdminDashboard";
+import { AdminInconsistencias } from "./pages/storeAdmins/AdminInconsistencias";
+import { AdminComentarios } from "./pages/storeAdmins/AdminComentarios";
 
 function App() {
   return (
@@ -29,6 +32,9 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register/customer" element={<Register />} />
+              <Route path="/store-dashboard" element={<AdminDashboard />} />
+              <Route path="/inconsistencias" element={<AdminInconsistencias />} />
+              <Route path="/comentarios" element={<AdminComentarios />} />
               <Route
                 path="/register/code-verification"
                 element={<AdminVerification />}
@@ -61,7 +67,9 @@ function App() {
               {/* routes for store admin */}
               <Route
                 element={<RoleProtectedRoute allowedRoles={["STORE_ADMIN"]} />}
-              ></Route>
+              >
+                
+              </Route>
 
               {/* routes for admin only */}
               <Route
