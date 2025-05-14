@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.itson.profeco.api.dto.request.SaveInconsistencyRequest;
+import com.itson.profeco.api.dto.request.UpdateInconsistencyStatusRequest;
 import com.itson.profeco.exceptions.InvalidDataException;
 import com.itson.profeco.exceptions.NotFoundException;
 import com.itson.profeco.model.Customer;
@@ -76,11 +77,16 @@ public class InconsistencyService {
         return this.inconsistencyRepository.save(newInconsistency);
     }
 
-    public Inconsistency update(UUID id, Inconsistency updatedInconsistency) {
-        if (!this.inconsistencyRepository.existsById(id)) {
-            return null;
+    public Inconsistency update(UpdateInconsistencyStatusRequest request) throws NotFoundException {
+        InconsistencyStatus status = this.inconsistencyStatusRepository.findByName(request.getStatus()).get();
+        if (status == null) {
+            throw new NotFoundException("Estado de inconsitencia inválido");
         }
-        updatedInconsistency.setId(id);
-        return this.inconsistencyRepository.save(updatedInconsistency);
+        Inconsistency inconsistency = this.inconsistencyRepository.getReferenceById(request.getUuid());
+        if (inconsistency == null) {
+            throw new NotFoundException("La inconsistencia a actualizar no existe");
+        }
+        inconsistency.setStatus(status);
+        return this.inconsistencyRepository.save(inconsistency);
     }
 }
