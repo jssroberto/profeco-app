@@ -38,7 +38,7 @@ public class InconsistencyService {
     public Inconsistency save(SaveInconsistencyRequest inconsistency) throws InvalidDataException, NotFoundException {
         Customer customer = this.customerRepository.findByUser_Id(inconsistency.getCustomerId()).get();
         InconsistencyStatus status = this.inconsistencyStatusRepository.findByName(inconsistency.getStatus()).get();
-        StoreProduct storeProduct = this.storeProductRepository.getById(inconsistency.getStoreProductUUID());
+        StoreProduct storeProduct = this.storeProductRepository.getReferenceById(inconsistency.getStoreProductUUID());
         Inconsistency newInconsistency = new Inconsistency();
         if (inconsistency.getActualPrice() == null) {
             throw new InvalidDataException("Se requiere el precio actual");

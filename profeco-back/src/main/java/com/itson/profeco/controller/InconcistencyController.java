@@ -1,8 +1,14 @@
 package com.itson.profeco.controller;
 
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itson.profeco.api.dto.request.SaveInconsistencyRequest;
@@ -12,6 +18,7 @@ import com.itson.profeco.model.Inconsistency;
 import com.itson.profeco.service.InconsistencyService;
 
 @RestController
+@RequestMapping("api/v1/incosistencies")
 public class InconcistencyController {
     
     private final InconsistencyService inconsistencyService;
@@ -21,7 +28,18 @@ public class InconcistencyController {
         this.inconsistencyService = inconsistencyService;
     }
 
+    @GetMapping()
+    public List<Inconsistency> findAll() {
+        return this.inconsistencyService.findAll();
+    }
+
+    @GetMapping("{id}")
+    public Inconsistency findById(@PathVariable UUID id) {
+        return this.inconsistencyService.getById(id);   
+    }
+
     @PostMapping()
+    @PreAuthorize("hasRole('CUSTOMER')") // TODO: Needs to be ROLE_CUSTOMER
     public Inconsistency save(SaveInconsistencyRequest request) throws InvalidDataException, NotFoundException {
         return this.inconsistencyService.save(request);
     }
