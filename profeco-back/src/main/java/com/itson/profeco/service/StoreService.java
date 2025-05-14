@@ -33,8 +33,9 @@ public class StoreService {
     }
 
     @Transactional
-    public StoreResponse saveStore(StoreRequest storeRequest) {
+    public StoreResponse saveStore(StoreRequest storeRequest, String imageUrl) {
         Store store = storeMapper.toEntity(storeRequest);
+        store.setImageUrl(imageUrl); // Set the imageUrl on the entity
         Store savedStore = storeRepository.save(store);
         return storeMapper.toResponse(savedStore);
     }

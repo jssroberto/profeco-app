@@ -7,7 +7,6 @@ import java.util.UUID;
 
 import com.itson.profeco.api.dto.request.RatingRequest;
 import com.itson.profeco.api.dto.response.RatingResponse;
-import com.itson.profeco.exceptions.OperationNotAllowedException;
 import com.itson.profeco.exceptions.ResourceNotFoundException;
 import com.itson.profeco.mapper.RatingMapper;
 import com.itson.profeco.model.Customer;

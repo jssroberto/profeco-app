@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import com.itson.profeco.api.dto.request.CustomerRequest;
 import com.itson.profeco.api.dto.response.CustomerResponse;
 import com.itson.profeco.model.Customer;
@@ -12,8 +13,6 @@ import com.itson.profeco.model.Inconsistency;
 import com.itson.profeco.model.Rating;
 import com.itson.profeco.model.Role;
 import com.itson.profeco.model.Wish;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
 
 @Mapper(componentModel = "spring")
 public interface CustomerMapper {

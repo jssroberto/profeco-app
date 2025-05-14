@@ -19,11 +19,12 @@ public class StoreResponse {
 
     private String location;
 
+    private String imageUrl;
+
     private Set<UUID> productsIds;
 
     private Set<UUID> ratingsIds;
 
-    private Set<UUID> inconsistenciesIds;
-
     private Set<UUID> wishesIds;
+
 }

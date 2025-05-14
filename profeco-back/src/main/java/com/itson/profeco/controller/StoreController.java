@@ -3,6 +3,7 @@ package com.itson.profeco.controller;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,14 +11,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.itson.profeco.api.dto.request.StoreRequest;
 import com.itson.profeco.api.dto.response.StoreResponse;
+import com.itson.profeco.service.FileStorageService;
 import com.itson.profeco.service.StoreService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +39,8 @@ import lombok.RequiredArgsConstructor;
 public class StoreController {
 
     private final StoreService storeService;
+
+    private final FileStorageService fileStorageService;
 
     @Operation(summary = "Get all stores", description = "Returns a list of all stores.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200",
@@ -51,13 +60,23 @@ public class StoreController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Create store", description = "Creates a new store.")
+    @Operation(summary = "Create store", description = "Creates a new store.",
+            requestBody = @RequestBody(content = @Content(encoding = {
+                    @Encoding(name = "storeRequest",
+                            contentType = MediaType.APPLICATION_JSON_VALUE),
+                    @Encoding(name = "image")})))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Store created successfully")})
-    @PostMapping
-    public ResponseEntity<StoreResponse> saveStore(@Valid @RequestBody StoreRequest storeRequest,
-            UriComponentsBuilder uriBuilder) {
-        StoreResponse response = storeService.saveStore(storeRequest);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<StoreResponse> saveStore(@Valid @RequestPart StoreRequest storeRequest,
+            @RequestPart MultipartFile image, UriComponentsBuilder uriBuilder) {
+
+        String uniqueFilename = fileStorageService.store(image);
+        String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/uploads/images/").path(uniqueFilename).toUriString();
+
+        StoreResponse response = storeService.saveStore(storeRequest, imageUrl);
+
         URI location =
                 uriBuilder.path("/api/v1/stores/{id}").buildAndExpand(response.getId()).toUri();
         return ResponseEntity.created(location).body(response);

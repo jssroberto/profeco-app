@@ -20,6 +20,7 @@ public interface StoreMapper {
     @Mapping(target = "products", ignore = true)
     @Mapping(target = "ratings", ignore = true)
     @Mapping(target = "wishes", ignore = true)
+    @Mapping(target = "imageUrl", ignore = true)
     Store toEntity(StoreRequest request);
 
     @Mapping(target = "productsIds",

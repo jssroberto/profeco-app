@@ -20,4 +20,5 @@ public class StoreRequest {
     @NotBlank(message = "Location is required")
     @Size(max = 150, message = "Location should not exceed 150 characters")
     private String location;
+
 }
