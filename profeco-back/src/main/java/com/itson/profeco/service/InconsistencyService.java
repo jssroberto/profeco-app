@@ -2,20 +2,23 @@ package com.itson.profeco.service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.itson.profeco.api.dto.request.InconsistencyRequest;
-import com.itson.profeco.api.dto.request.UpdateInconsistencyStatusRequest;
-import com.itson.profeco.exceptions.InvalidDataException;
-import com.itson.profeco.exceptions.NotFoundException;
+import com.itson.profeco.api.dto.request.UpdateInconsistencyStatusRequest; // Added import
+import com.itson.profeco.api.dto.response.InconsistencyResponse;
+import com.itson.profeco.api.dto.response.StoreAdminResponse;
 import com.itson.profeco.mapper.InconsistencyMapper;
 import com.itson.profeco.model.Customer;
 import com.itson.profeco.model.Inconsistency;
 import com.itson.profeco.model.InconsistencyStatus;
-import com.itson.profeco.model.StoreProduct;
-import com.itson.profeco.repository.CustomerRepository;
 import com.itson.profeco.repository.InconsistencyRepository;
 import com.itson.profeco.repository.InconsistencyStatusRepository;
 import com.itson.profeco.repository.StoreProductRepository;
+import com.itson.profeco.repository.StoreRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,50 +26,129 @@ import lombok.RequiredArgsConstructor;
 public class InconsistencyService {
 
     private final InconsistencyRepository inconsistencyRepository;
-    private final CustomerRepository customerRepository;
-    private final InconsistencyStatusRepository inconsistencyStatusRepository;
     private final StoreProductRepository storeProductRepository;
+    private final InconsistencyStatusRepository inconsistencyStatusRepository;
+    private final StoreRepository storeRepository;
+
+    private final CustomerService customerService;
+    private final StoreAdminService storeAdminService;
+    private final ProfecoAdminService profecoAdminService;
 
     private final InconsistencyMapper inconsistencyMapper;
 
-    public List<Inconsistency> findAll() {
-        return this.inconsistencyRepository.findAll();
-    }
+    @Value("${inconsistency.status.open}")
+    private String defaultStatusOpen;
 
-    public Inconsistency getById(UUID id) {
-        return this.inconsistencyRepository.findById(id).orElse(null);
-    }
-
-    public Inconsistency save(InconsistencyRequest inconsistency)
-            throws InvalidDataException, NotFoundException {
-        // Customer customer =
-        //         this.customerRepository.findByUser_Id(inconsistency.getCustomerId()).get();
-        // InconsistencyStatus status =
-        //         this.inconsistencyStatusRepository.findByName(inconsistency.getStatus()).get();
-        // StoreProduct storeProduct =
-        //         this.storeProductRepository.getReferenceById(inconsistency.getStoreProductUUID());
-        // Inconsistency newInconsistency = new Inconsistency();
-
-        // newInconsistency.setActualPrice(inconsistency.getActualPrice());
-        // newInconsistency.setPublishedPrice(inconsistency.getPublishedPrice());
-        // newInconsistency.setDate(inconsistency.getDate());
-        // newInconsistency.setStatus(status);
-        // newInconsistency.setCustomer(customer);
-        // newInconsistency.setStoreProduct(storeProduct);
-        // return this.inconsistencyRepository.save(newInconsistency);
-        return null;
-    }
-
-    public Inconsistency update(UpdateInconsistencyStatusRequest request) throws NotFoundException {
-        InconsistencyStatus status =
-                this.inconsistencyStatusRepository.findByName(request.getStatus()).get();
-        if (status == null) {
-            throw new NotFoundException("Estado de inconsitencia inválido");
+    @Transactional(readOnly = true)
+    public List<InconsistencyResponse> getInconsistenciesByCurrentCustomer() {
+        Customer customer = customerService.getAuthenticatedCustomerEntity();
+        if (customer == null) {
+            throw new IllegalStateException("No authenticated customer found.");
         }
-        Inconsistency inconsistency =
-                this.inconsistencyRepository.getReferenceById(request.getUuid());
-
-        inconsistency.setStatus(status);
-        return this.inconsistencyRepository.save(inconsistency);
+        List<Inconsistency> inconsistencies =
+                inconsistencyRepository.findByCustomerId(customer.getId());
+        return inconsistencies.stream().map(inconsistencyMapper::toResponse)
+                .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public List<InconsistencyResponse> getInconsistenciesByCurrentStoreAdmin() {
+        StoreAdminResponse currentStoreAdmin = storeAdminService.getCurrentStoreAdmin();
+        if (currentStoreAdmin == null || currentStoreAdmin.getStoreId() == null) {
+            throw new IllegalStateException(
+                    "Authenticated store admin must be associated with a store.");
+        }
+        UUID storeId = currentStoreAdmin.getStoreId();
+        List<Inconsistency> inconsistencies =
+                inconsistencyRepository.findByStoreProductStoreId(storeId);
+        return inconsistencies.stream().map(inconsistencyMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InconsistencyResponse> getAllInconsistenciesForProfecoAdmin() {
+        profecoAdminService.getCurrentProfecoAdmin();
+        List<Inconsistency> inconsistencies = inconsistencyRepository.findAll();
+        return inconsistencies.stream().map(inconsistencyMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public InconsistencyResponse getInconsistencyById(UUID id) {
+        Inconsistency inconsistency = inconsistencyRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Inconsistency not found with id: " + id));
+        return inconsistencyMapper.toResponse(inconsistency);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InconsistencyResponse> getInconsistenciesByStoreProduct(UUID storeProductId) {
+        storeProductRepository.findById(storeProductId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "StoreProduct not found with id: " + storeProductId));
+        List<Inconsistency> inconsistencies =
+                inconsistencyRepository.findByStoreProductId(storeProductId);
+        return inconsistencies.stream().map(inconsistencyMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InconsistencyResponse> getInconsistenciesByStore(UUID storeId) {
+        storeRepository.findById(storeId).orElseThrow(
+                () -> new EntityNotFoundException("Store not found with id: " + storeId));
+        List<Inconsistency> inconsistencies =
+                inconsistencyRepository.findByStoreProductStoreId(storeId);
+        return inconsistencies.stream().map(inconsistencyMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional
+    public InconsistencyResponse saveInconsistency(InconsistencyRequest request) {
+        Customer customer = customerService.getAuthenticatedCustomerEntity();
+        if (customer == null) {
+            throw new IllegalStateException(
+                    "No authenticated customer found to report inconsistency.");
+        }
+
+        storeProductRepository.findById(request.getStoreProductId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "StoreProduct not found with id: " + request.getStoreProductId()));
+
+        InconsistencyStatus pendingStatus =
+                inconsistencyStatusRepository.findByName(defaultStatusOpen).orElseThrow(
+                        () -> new EntityNotFoundException("Default inconsistency status '"
+                                + defaultStatusOpen + "' not found."));
+
+        Inconsistency inconsistency = inconsistencyMapper.toEntity(request);
+        inconsistency.setCustomer(customer);
+        inconsistency.setStatus(pendingStatus);
+
+        Inconsistency savedInconsistency = inconsistencyRepository.save(inconsistency);
+        return inconsistencyMapper.toResponse(savedInconsistency);
+    }
+
+    @Transactional
+    public InconsistencyResponse updateInconsistencyStatus(UUID inconsistencyId,
+            UpdateInconsistencyStatusRequest statusRequest) {
+        Inconsistency inconsistency = inconsistencyRepository.findById(inconsistencyId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Inconsistency not found with id: " + inconsistencyId));
+
+        InconsistencyStatus newStatus = inconsistencyStatusRepository
+                .findByName(statusRequest.getStatus())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "InconsistencyStatus not found with name: " + statusRequest.getStatus()));
+
+        inconsistency.setStatus(newStatus);
+        Inconsistency updatedInconsistency = inconsistencyRepository.save(inconsistency);
+        return inconsistencyMapper.toResponse(updatedInconsistency);
+    }
+
+    @Transactional
+    public void deleteInconsistency(UUID id) {
+        if (!inconsistencyRepository.existsById(id)) {
+            throw new EntityNotFoundException("Inconsistency not found with id: " + id);
+        }
+        inconsistencyRepository.deleteById(id);
+    }
+
 }

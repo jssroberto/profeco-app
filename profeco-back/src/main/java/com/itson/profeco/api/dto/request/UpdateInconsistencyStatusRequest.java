@@ -1,11 +1,18 @@
 package com.itson.profeco.api.dto.request;
 
-import java.util.UUID;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import lombok.Data;
-
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UpdateInconsistencyStatusRequest {
-    private UUID uuid;
+
+    @NotBlank(message = "The new status name cannot be blank")
     private String status;
+    
 }

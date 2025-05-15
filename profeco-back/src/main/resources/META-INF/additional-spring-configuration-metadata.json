@@ -18,5 +18,15 @@
     "name": "role.profeco-admin",
     "type": "java.lang.String",
     "description": "The role assigned to Profeco administrators"
+  },
+  {
+    "name": "inconsistency.status.open",
+    "type": "java.lang.String",
+    "description": "The default status for open inconsistencies"
+  },
+  {
+    "name": "inconsistency.status.closed",
+    "type": "java.lang.String",
+    "description": "The status for closed inconsistencies"
   }
 ]}

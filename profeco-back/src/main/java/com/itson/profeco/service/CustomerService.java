@@ -30,20 +30,18 @@ public class CustomerService {
     @Value("${role.customer}")
     private String defaultUserRole;
 
-    private Customer getAuthenticatedCustomerEntity() {
+    public Customer getAuthenticatedCustomerEntity() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new IllegalStateException("There is no authenticated user.");
+            return null;
         }
+
         String username = authentication.getName();
-        if (username == null || username.isEmpty()) {
-            throw new IllegalStateException(
-                    "The authenticated user's email could not be determined.");
-        }
-        return customerRepository.findByUser_Email(username)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Customer not found for authenticated user: " + username));
+        UserEntity user = (UserEntity) authentication.getPrincipal();
+
+        return customerRepository.findByUser(user).orElseThrow(() -> new EntityNotFoundException(
+                "Customer not found for authenticated user: " + username));
     }
 
     @Transactional(readOnly = true)
