@@ -19,8 +19,8 @@ const Negociosinfo = () => {
   // token
   const { token } = useAuth();
 
-  useEffect(() => {
-    const fetchBusinessData = async () => {
+
+  const fetchBusinessData = async () => {
       try {
         //  carga de datos del super
         const { data } = await axios.get(
@@ -88,7 +88,7 @@ const Negociosinfo = () => {
             }
           })
         );
-        
+
         setProducts(productsWithInfo.filter(Boolean));
 
         // carga de productos CON OFERTA
@@ -106,37 +106,63 @@ const Negociosinfo = () => {
         );
 
         const offersWithInfo = await Promise.all(
-  filteredOfferProducts.map(async (offer: any) => {
-    try {
-      const { data: product } = await axios.get(
-        `http://localhost:8080/api/v1/products/${offer.storeProduct.productId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return {
-        id: offer.storeProduct.productId,
-        title: product.name || "Producto sin nombre",
-        description: `Precio original: $${offer.storeProduct.price} - Ahora: $${offer.offerPrice}`,
-        validUntil: offer.offerEndDate,
-        discount: offer.offerPrice && offer.storeProduct.price
-          ? Math.round(
-              100 - (offer.offerPrice / offer.storeProduct.price) * 100
-            )
-          : 0,
-      };
-    } catch {
-      return null;
-    }
-  })
-);
+          filteredOfferProducts.map(async (offer: any) => {
+            try {
+              const { data: product } = await axios.get(
+                `http://localhost:8080/api/v1/products/${offer.storeProduct.productId}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              return {
+                id: offer.storeProduct.productId,
+                title: product.name || "Producto sin nombre",
+                description: `Precio original: $${offer.storeProduct.price} - Ahora: $${offer.offerPrice}`,
+                validUntil: offer.offerEndDate,
+                discount:
+                  offer.offerPrice && offer.storeProduct.price
+                    ? Math.round(
+                        100 -
+                          (offer.offerPrice / offer.storeProduct.price) * 100
+                      )
+                    : 0,
+              };
+            } catch {
+              return null;
+            }
+          })
+        );
 
-setOffers(offersWithInfo.filter(Boolean));
-
+        setOffers(offersWithInfo.filter(Boolean));
 
         //console.log("Productos cargados:", productsWithInfo.filter(Boolean)); // para pruebassss
+
+        const { data: ratings } = await axios.get(
+          `http://localhost:8080/api/v1/ratings/store/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // Normaliza el score si es necesario (ajusta según tu backend)
+        const reviewsWithInfo = ratings.map((r: any) => ({
+          id: r.id,
+          score:
+            r.score > 5
+              ? Math.round((r.score / 2147483647) * 5 * 10) / 10
+              : r.score,
+          comment: r.comment,
+          date: r.date,
+          customerName: r.customerName,
+        }));
+        setReviews(reviewsWithInfo);
+
+
+
       } catch (error) {
         setBusinessData(null);
       } finally {
@@ -144,6 +170,8 @@ setOffers(offersWithInfo.filter(Boolean));
       }
     };
 
+
+  useEffect(() => {
     fetchBusinessData();
   }, [id]);
 
@@ -160,7 +188,10 @@ setOffers(offersWithInfo.filter(Boolean));
       />
       <OffersSection offers={offers} />
       <ProductsSection products={products} />
-      <ReviewSection reviews={reviews} />
+      <ReviewSection 
+        reviews={reviews} 
+        storeId={id || ""}
+        onReviewAdded={fetchBusinessData}/>
     </div>
   );
 };
