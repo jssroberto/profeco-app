@@ -400,7 +400,7 @@ INSERT INTO
 VALUES
     (
         '5b5173cd-a9b8-47d3-17ba-cb2183940001',
-        'STOREADMINCODE1',
+        encode(sha256(random()::text::bytea), 'hex'),
         '2025-05-01 00:00:00',
         '2025-06-01 00:00:00',
         FALSE,
@@ -409,7 +409,7 @@ VALUES
     ),
     (
         '5b5173cd-a9b8-47d3-17ba-cb2183940002',
-        'PROFECOADMINCODE1',
+        encode(sha256(random()::text::bytea), 'hex'),
         '2025-05-01 00:00:00',
         '2025-06-01 00:00:00',
         FALSE,
@@ -418,7 +418,7 @@ VALUES
     ),
     (
         '5b5173cd-a9b8-47d3-17ba-cb2183940003',
-        'USEDSTORECODE',
+        encode(sha256(random()::text::bytea), 'hex'),
         '2025-04-01 00:00:00',
         '2025-05-01 00:00:00',
         TRUE,

@@ -1,36 +1,44 @@
 package com.itson.profeco.controller;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import com.itson.profeco.api.dto.request.ProductSearchRequest;
 import com.itson.profeco.api.dto.response.FavoriteStoresResponse;
 import com.itson.profeco.api.dto.response.ProductSearchResponse;
 import com.itson.profeco.api.dto.response.ShoppingListResponse;
+import com.itson.profeco.security.CustomUserDetails;
 import com.itson.profeco.service.PreferenceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import com.itson.profeco.security.CustomUserDetails;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/v1/preferences")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasRole('CUSTOMER')")
+@PreAuthorize("hasRole(@environment.getProperty('role.customer'))")
 @Tag(name = "My Preferences", description = "Manage current authenticated customer's preferences")
 public class PreferenceController {
 
     private final PreferenceService preferenceService;
 
-    private UUID get (CustomUserDetails currentUser) {
+    private UUID get(CustomUserDetails currentUser) {
         if (currentUser == null) {
             throw new IllegalStateException("User not authenticated");
         }
@@ -43,8 +51,7 @@ public class PreferenceController {
     @PostMapping("/favorite-stores/{storeId}")
     public ResponseEntity<FavoriteStoresResponse> addFavoriteStore(
             @Parameter(description = "ID of the store to add") @PathVariable UUID storeId) {
-        return preferenceService.addFavoriteStore(storeId)
-                .map(ResponseEntity::ok)
+        return preferenceService.addFavoriteStore(storeId).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -54,9 +61,8 @@ public class PreferenceController {
     @DeleteMapping("/favorite-stores/{storeId}")
     public ResponseEntity<FavoriteStoresResponse> removeFavoriteStore(
             @Parameter(description = "ID of the store to remove") @PathVariable UUID storeId) {
-       
-        return preferenceService.removeFavoriteStore(storeId)
-                .map(ResponseEntity::ok)
+
+        return preferenceService.removeFavoriteStore(storeId).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -66,7 +72,8 @@ public class PreferenceController {
     @GetMapping("/product-searches")
     public ResponseEntity<List<ProductSearchResponse>> getProductSearchesAsc() {
 
-        List<ProductSearchResponse> response = preferenceService.getAllProductSearchesSortedByCountDesc();
+        List<ProductSearchResponse> response =
+                preferenceService.getAllProductSearchesSortedByCountDesc();
         return ResponseEntity.ok(response);
     }
 
@@ -74,7 +81,7 @@ public class PreferenceController {
             description = "Retrieves all favorite stores for the current customer",
             tags = {"Favorite Stores"})
     @GetMapping("/favorite-stores")
-    public ResponseEntity<FavoriteStoresResponse> getFavoriteStores() { 
+    public ResponseEntity<FavoriteStoresResponse> getFavoriteStores() {
         return ResponseEntity.ok(preferenceService.getFavoriteStores());
     }
 
@@ -84,8 +91,7 @@ public class PreferenceController {
     @PostMapping("/shopping-list/{productId}")
     public ResponseEntity<ShoppingListResponse> addProductToShoppingList(
             @Parameter(description = "ID of the product to add") @PathVariable UUID productId) {
-        return preferenceService.addProductToShoppingList(productId)
-                .map(ResponseEntity::ok)
+        return preferenceService.addProductToShoppingList(productId).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -96,8 +102,7 @@ public class PreferenceController {
     public ResponseEntity<ShoppingListResponse> removeProductFromShoppingList(
             @AuthenticationPrincipal CustomUserDetails currentUser, // Injected authenticated user
             @Parameter(description = "ID of the product to remove") @PathVariable UUID productId) {
-        return preferenceService.removeProductFromShoppingList(productId)
-                .map(ResponseEntity::ok)
+        return preferenceService.removeProductFromShoppingList(productId).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -106,7 +111,7 @@ public class PreferenceController {
             tags = {"Shopping List"})
     @GetMapping("/shopping-list")
     public ResponseEntity<ShoppingListResponse> getShoppingList() {
-        return ResponseEntity.ok(preferenceService.getShoppingList( ));
+        return ResponseEntity.ok(preferenceService.getShoppingList());
     }
 
     @Operation(summary = "Track product search",
@@ -123,9 +128,9 @@ public class PreferenceController {
             tags = {"Product Searches"})
     @GetMapping("/product-searches/count")
     public ResponseEntity<List<ProductSearchResponse>> getProductSearches(
-            @Parameter(description = "Maximum number of searches to return") @RequestParam(required = false) Integer limit) {
+            @Parameter(description = "Maximum number of searches to return") @RequestParam(
+                    required = false) Integer limit) {
 
-        return ResponseEntity.ok(
-                preferenceService.getProductSearches(Optional.ofNullable(limit)));
+        return ResponseEntity.ok(preferenceService.getProductSearches(Optional.ofNullable(limit)));
     }
 }
