@@ -13,7 +13,7 @@ import Productos from "./pages/customers/Productos";
 import ProductInfo from "./pages/customers/ProductInfo";
 import ReportInconsistency from "./pages/customers/ReportInconsistency";
 import Negocios from "./pages/customers/Negocios";
-import Negociosinfo from "./pages/customers/NegocioInfo";
+import Negociosinfo from "./pages/customers/NegocioInfo"; 
 
 import { AdminInconsistencias } from "./pages/storeAdmins/AdminInconsistencias";
 import { AdminComentarios } from "./pages/storeAdmins/AdminComentarios";
@@ -66,6 +66,7 @@ function App() {
                 />
                 <Route path="/negocios" element={<Negocios />} />
                 <Route path="/negocios/:id" element={<Negociosinfo />} />
+                <Route path="/negocios/:id/productos/:id" element={<ProductInfo /> } />
               </Route>
             </Route>
 

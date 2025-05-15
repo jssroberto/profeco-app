@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 
 interface Product {
   id: string;
@@ -19,8 +20,9 @@ const ProductsSection = ({ products }: ProductsSectionProps) => {
         <h2 className="text-2xl font-bold mb-6 text-[#681837]">Productos</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => (
-            <div
+            <Link
               key={product.id}
+              to={`/productos/${product.id}`}
               className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
             >
               <img
@@ -42,7 +44,7 @@ const ProductsSection = ({ products }: ProductsSectionProps) => {
                   )}
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
