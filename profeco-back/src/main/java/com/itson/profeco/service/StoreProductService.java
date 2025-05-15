@@ -103,7 +103,6 @@ public class StoreProductService {
     @Transactional
     public StoreOfferResponse applyOrUpdateOffer(UUID storeProductId, StoreOfferRequest request) {
         validateOfferDates(request.getOfferStartDate(), request.getOfferEndDate());
-
         StoreProduct existingProduct = findStoreProductEntityById(storeProductId);
 
         if (request.getOfferPrice() != null &&
@@ -115,14 +114,10 @@ public class StoreProductService {
             throw new DataIntegrityViolationException(
                     "An offer already exists for this product in this store with the same target offer price");
         }
-
         storeProductMapper.updateOfferFieldsInStoreProduct(existingProduct, request);
-
-
         StoreProduct updatedProduct = storeProductRepository.save(existingProduct);
         return storeProductMapper.entityToOfferResponse(updatedProduct);
     }
-
     @Transactional
     public StoreOfferResponse removeOffer(UUID storeProductId) {
         StoreProduct existingProduct = findStoreProductEntityById(storeProductId);
@@ -133,82 +128,30 @@ public class StoreProductService {
         StoreProduct updatedProduct = storeProductRepository.save(existingProduct);
         return storeProductMapper.entityToOfferResponse(updatedProduct);
     }
-
-
-
     @Transactional(readOnly = true)
     public List<StoreOfferResponse> getProductsWithAnyOffer() {
         return storeProductRepository.findByOfferPriceNotNull().stream()
                 .map(storeProductMapper::entityToOfferResponse)
                 .collect(Collectors.toList());
     }
-
     @Transactional(readOnly = true)
     public List<StoreOfferResponse> getOffersActiveBetweenDates(LocalDate startDate, LocalDate endDate) {
         return storeProductRepository.findByOfferStartDateLessThanEqualAndOfferEndDateGreaterThanEqual(startDate, endDate).stream()
                 .map(storeProductMapper::entityToOfferResponse)
                 .collect(Collectors.toList());
     }
-
-
     @Transactional(readOnly = true)
     public List<StoreOfferResponse> getOffersByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
         return storeProductRepository.findByOfferPriceBetween(minPrice, maxPrice).stream()
                 .map(storeProductMapper::entityToOfferResponse)
                 .collect(Collectors.toList());
     }
-
-    @Transactional(readOnly = true)
-    public List<StoreProductResponse> getProductsByStoreId(UUID storeId) {
-        return storeProductRepository.findByStore_Id(storeId).stream()
-                .map(storeProductMapper::entityToProductResponse)
-                .collect(Collectors.toList());
-    }
-
-
-    @Transactional(readOnly = true)
-    public List<StoreProductResponse> getProductsByStoreName(String storeName) {
-        return storeProductRepository.findByStore_Name(storeName).stream()
-                .map(storeProductMapper::entityToProductResponse)
-                .collect(Collectors.toList());
-    }
-
-
-    @Transactional(readOnly = true)
-    public List<StoreProductResponse> getProductsByProductName(String productName) {
-        return storeProductRepository.findByProduct_Name(productName).stream()
-                .map(storeProductMapper::entityToProductResponse)
-                .collect(Collectors.toList());
-    }
-
-
-    @Transactional(readOnly = true)
-    public List<StoreProductResponse> getProductsByPriceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
-        return storeProductRepository.findByPriceBetween(minPrice, maxPrice).stream()
-                .map(storeProductMapper::entityToProductResponse)
-                .collect(Collectors.toList());
-    }
-
-    // Combined queries
-    @Transactional(readOnly = true)
-    public StoreProductResponse getProductByStoreAndProductIds(UUID storeId, UUID productId) {
-        return storeProductRepository.findByStore_IdAndProduct_Id(storeId, productId)
-                .stream()
-                .findFirst()
-                .map(storeProductMapper::entityToProductResponse)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "StoreProduct not found for Store ID: " + storeId + " and Product ID: " + productId));
-    }
-
-
     @Transactional(readOnly = true)
     public List<StoreOfferResponse> findActiveOffersFiltered(UUID storeId, UUID productId) {
         return storeProductRepository.findActiveOffers(storeId, productId).stream()
                 .map(storeProductMapper::entityToOfferResponse)
                 .collect(Collectors.toList());
     }
-
-
     @Transactional(readOnly = true)
     public List<StoreOfferResponse> findCurrentProductOffers(UUID productId, LocalDate currentDate) {
         return storeProductRepository.findCurrentProductOffers(productId, currentDate).stream()
@@ -217,13 +160,49 @@ public class StoreProductService {
     }
 
 
+
     @Transactional(readOnly = true)
-    public List<StoreProductResponse> findStoreProductsWithValidPrices(UUID storeId) {
-        return storeProductRepository.findStoreProductsWithValidPrices(storeId).stream()
+    public List<StoreProductResponse> getProductsByStoreId(UUID storeId) {
+        return storeProductRepository.findByStore_IdAndOfferPriceIsNull(storeId).stream()
                 .map(storeProductMapper::entityToProductResponse)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<StoreProductResponse> getProductsByStoreName(String storeName) {
+        return storeProductRepository.findByStore_NameAndOfferPriceIsNull(storeName).stream()
+                .map(storeProductMapper::entityToProductResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<StoreProductResponse> getProductsByProductName(String productName) {
+        return storeProductRepository.findByProduct_NameAndOfferPriceIsNull(productName).stream()
+                .map(storeProductMapper::entityToProductResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<StoreProductResponse> getProductsByPriceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
+        return storeProductRepository.findByPriceBetweenAndOfferPriceIsNull(minPrice, maxPrice).stream()
+                .map(storeProductMapper::entityToProductResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public StoreProductResponse getProductByStoreAndProductIds(UUID storeId, UUID productId) {
+        return storeProductRepository.findOneByStore_IdAndProduct_IdAndOfferPriceIsNull(storeId, productId)
+                .map(storeProductMapper::entityToProductResponse)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "StoreProduct without offer not found for Store ID: " + storeId + " and Product ID: " + productId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<StoreProductResponse> findStoreProductsWithValidPrices(UUID storeId) {
+        return storeProductRepository.findStoreProductsWithoutOfferOrderedByPrice(storeId).stream()
+                .map(storeProductMapper::entityToProductResponse)
+                .collect(Collectors.toList());
+    }
 
     private StoreProduct findStoreProductEntityById(UUID id) {
         return storeProductRepository.findById(id)
@@ -238,4 +217,6 @@ public class StoreProductService {
             throw new IllegalArgumentException("Offer start date must be before or equal to end date.");
         }
     }
+
+
 }

@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Tag(name = "Store Wish", description = "Operations for Supermarkets on Wishes in their Store")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasRole(@environment.getProperty('role.store-admin'))")
+@PreAuthorize("hasRole('STORE-ADMIN')")
 public class StoreWishController {
 
     private final WishService wishService;

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,18 +24,20 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/store-products")
 @RequiredArgsConstructor
-@Tag(name = "Store Product Management", description = "APIs for managing products within stores")
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "Store Product Management (Base Products)", description = "APIs for managing base products (without offers) within stores.")
 public class StoreProductController {
 
     private final StoreProductService storeProductService;
 
-    @Operation(summary = "Create a new store product", description = "Adds a new product listing to a store with its price.")
+    @Operation(summary = "Create a new store product (base price)",
+            description = "Adds a new product listing to a store with its base price. Offers are managed separately.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Store product created successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = StoreProductResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required permissions (e.g., ROLE_ADMIN)")
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have STORE_ADMIN role")
     })
     @PostMapping
     @PreAuthorize("hasRole('STORE_ADMIN')")
@@ -43,27 +46,30 @@ public class StoreProductController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Get a store product by ID", description = "Retrieves a specific store product by its unique identifier.")
+    @Operation(summary = "Get a store product by ID (base or with offer)",
+            description = "Retrieves a specific store product by its unique identifier. The product may or may not have an active offer. This endpoint returns the base product details.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved store product",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = StoreProductResponse.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required role"),
             @ApiResponse(responseCode = "404", description = "Store product not found")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'PROFECO_ADMIN', 'STORE_ADMIN')")
     public ResponseEntity<StoreProductResponse> getStoreProductById(
             @Parameter(description = "ID of the store product to retrieve") @PathVariable UUID id) {
         return ResponseEntity.ok(storeProductService.getStoreProductById(id));
     }
 
-    @Operation(summary = "Update an existing store product", description = "Updates details of an existing store product.")
+    @Operation(summary = "Update an existing store product (base price/details)",
+            description = "Updates base details (like price, store, or product association) of an existing store product. Offer details are managed separately.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Store product updated successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = StoreProductResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required permissions"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have STORE_ADMIN role"),
             @ApiResponse(responseCode = "404", description = "Store product not found")
     })
     @PutMapping("/{id}")
@@ -74,11 +80,12 @@ public class StoreProductController {
         return ResponseEntity.ok(storeProductService.updateStoreProduct(id, request));
     }
 
-    @Operation(summary = "Delete a store product", description = "Removes a store product listing.")
+    @Operation(summary = "Delete a store product",
+            description = "Removes a store product listing. This will also remove any associated offers implicitly if cascading is set up, or may fail if offers depend on it without cascading.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Store product deleted successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required permissions"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have STORE_ADMIN role"),
             @ApiResponse(responseCode = "404", description = "Store product not found")
     })
     @DeleteMapping("/{id}")
@@ -90,78 +97,92 @@ public class StoreProductController {
     }
 
 
-    @Operation(summary = "Find store products by store ID", description = "Retrieves all products associated with a specific store ID.")
+
+
+    @Operation(summary = "Find store products WITHOUT offers by store ID",
+            description = "Retrieves all products associated with a specific store ID that do NOT currently have an offer price set.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved products for the store"),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved products without offers for the store"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required role")
     })
-    @GetMapping("/by-store/{storeId}")
-    public ResponseEntity<List<StoreProductResponse>> getProductsByStoreId(
+    @GetMapping("/by-store/{storeId}/without-offer")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'PROFECO_ADMIN', 'STORE_ADMIN')")
+    public ResponseEntity<List<StoreProductResponse>> getProductsByStoreIdWithoutOffer(
             @Parameter(description = "ID of the store") @PathVariable UUID storeId) {
         return ResponseEntity.ok(storeProductService.getProductsByStoreId(storeId));
     }
 
-    @Operation(summary = "Find store products by store name", description = "Retrieves products by the name of the store.")
+    @Operation(summary = "Find store products WITHOUT offers by store name",
+            description = "Retrieves products by the name of the store that do NOT currently have an offer price set.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved products without offers"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required role")
     })
-    @GetMapping("/by-store-name")
-    public ResponseEntity<List<StoreProductResponse>> getProductsByStoreName(
+    @GetMapping("/by-store-name/without-offer")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'PROFECO_ADMIN', 'STORE_ADMIN')")
+    public ResponseEntity<List<StoreProductResponse>> getProductsByStoreNameWithoutOffer(
             @Parameter(description = "Name of the store") @RequestParam String name) {
         return ResponseEntity.ok(storeProductService.getProductsByStoreName(name));
     }
 
-    @Operation(summary = "Find store products by product name", description = "Retrieves products by their name across all stores.")
+    @Operation(summary = "Find store products WITHOUT offers by product name",
+            description = "Retrieves products by their name across all stores that do NOT currently have an offer price set.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved products without offers"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required role")
     })
-    @GetMapping("/by-product-name")
-    public ResponseEntity<List<StoreProductResponse>> getProductsByProductName(
+    @GetMapping("/by-product-name/without-offer")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'PROFECO_ADMIN', 'STORE_ADMIN')")
+    public ResponseEntity<List<StoreProductResponse>> getProductsByProductNameWithoutOffer(
             @Parameter(description = "Name of the product") @RequestParam String name) {
         return ResponseEntity.ok(storeProductService.getProductsByProductName(name));
     }
 
-    @Operation(summary = "Find store products by price range", description = "Retrieves products within a specified price range.")
+    @Operation(summary = "Find store products WITHOUT offers by base price range",
+            description = "Retrieves products (without offers) whose base price falls within a specified range.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved products without offers"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required role")
     })
-    @GetMapping("/by-price-range")
-    public ResponseEntity<List<StoreProductResponse>> getProductsByPriceRange(
-            @Parameter(description = "Minimum price") @RequestParam BigDecimal minPrice,
-            @Parameter(description = "Maximum price") @RequestParam BigDecimal maxPrice) {
+    @GetMapping("/by-price-range/without-offer")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'PROFECO_ADMIN', 'STORE_ADMIN')")
+    public ResponseEntity<List<StoreProductResponse>> getProductsByPriceRangeWithoutOffer(
+            @Parameter(description = "Minimum base price") @RequestParam BigDecimal minPrice,
+            @Parameter(description = "Maximum base price") @RequestParam BigDecimal maxPrice) {
         return ResponseEntity.ok(storeProductService.getProductsByPriceBetween(minPrice, maxPrice));
     }
 
-
-    @Operation(summary = "Find store product by store and product IDs", description = "Retrieves a specific product for a specific store.")
+    @Operation(summary = "Find a specific store product WITHOUT an offer by store and product IDs",
+            description = "Retrieves a specific product for a specific store, only if it does NOT currently have an offer price set.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved store product"),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved store product without offer",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = StoreProductResponse.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "404", description = "Store product not found")
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required role"),
+            @ApiResponse(responseCode = "404", description = "Store product without offer not found for the given IDs")
     })
-    @GetMapping("/by-store/{storeId}/product/{productId}")
-    public ResponseEntity<StoreProductResponse> getProductByStoreAndProductIds(
+    @GetMapping("/by-store/{storeId}/product/{productId}/without-offer")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'PROFECO_ADMIN', 'STORE_ADMIN')")
+    public ResponseEntity<StoreProductResponse> getProductByStoreAndProductIdsWithoutOffer(
             @Parameter(description = "ID of the store") @PathVariable UUID storeId,
             @Parameter(description = "ID of the product") @PathVariable UUID productId) {
         return ResponseEntity.ok(storeProductService.getProductByStoreAndProductIds(storeId, productId));
     }
 
-    @Operation(summary = "Find store products with valid prices for a specific store", description = "Retrieves products with valid (non-null or positive offer) prices, ordered by base price.")
+    @Operation(summary = "Find store products WITHOUT offers for a specific store, ordered by price",
+            description = "Retrieves products for a specific store that do NOT have an offer, ordered by their base price. This was previously 'with-valid-prices'.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved products without offers"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have required role")
     })
-    @GetMapping("/by-store/{storeId}/with-valid-prices")
-    public ResponseEntity<List<StoreProductResponse>> findStoreProductsWithValidPrices(
+    @GetMapping("/by-store/{storeId}/without-offer/ordered-by-price")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'PROFECO_ADMIN', 'STORE_ADMIN')")
+    public ResponseEntity<List<StoreProductResponse>> findStoreProductsWithoutOfferOrderedByPrice(
             @Parameter(description = "ID of the store") @PathVariable UUID storeId) {
         return ResponseEntity.ok(storeProductService.findStoreProductsWithValidPrices(storeId));
     }
