@@ -2,12 +2,17 @@ import { Heart } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
+import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 const ProductInfo = () => {
 
   const { id } = useParams();
-
+  const { token } = useAuth();
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
+
 
 
   return (
