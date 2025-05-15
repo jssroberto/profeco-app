@@ -14,7 +14,7 @@ public interface InconsistencyMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "publishedPrice", source = "publishedPrice")
     @Mapping(target = "actualPrice", source = "actualPrice")
-    @Mapping(target = "date", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "dateTime", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "customer", ignore = true)
     @Mapping(target = "storeProduct",
@@ -24,8 +24,8 @@ public interface InconsistencyMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "publishedPrice", source = "publishedPrice")
     @Mapping(target = "actualPrice", source = "actualPrice")
-    @Mapping(target = "date",
-            expression = "java(inconsistency.getDate() != null ? inconsistency.getDate().toString() : null)")
+    @Mapping(target = "dateTime",
+            expression = "java(inconsistency.getDateTime() != null ? inconsistency.getDateTime().toString() : null)")
     @Mapping(target = "status", source = "status.name")
     InconsistencyResponse toResponse(Inconsistency inconsistency);
 

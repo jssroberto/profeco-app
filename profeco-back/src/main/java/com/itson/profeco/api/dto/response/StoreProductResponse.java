@@ -1,15 +1,12 @@
 package com.itson.profeco.api.dto.response;
 
-import com.itson.profeco.model.Product;
-import com.itson.profeco.model.Store;
+import java.math.BigDecimal;
+import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigDecimal;
-import java.util.UUID;
 
 @Getter
 @Setter

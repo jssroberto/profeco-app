@@ -18,7 +18,7 @@ public class InconsistencyResponse {
 
     private Double actualPrice;
 
-    private String date;
+    private String dateTime;
 
     private String status;
 

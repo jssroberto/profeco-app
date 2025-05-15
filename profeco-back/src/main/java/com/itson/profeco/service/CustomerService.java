@@ -15,6 +15,8 @@ import com.itson.profeco.model.Customer;
 import com.itson.profeco.model.Role;
 import com.itson.profeco.model.UserEntity;
 import com.itson.profeco.repository.CustomerRepository;
+import com.itson.profeco.repository.UserRepository; // Added import
+import com.itson.profeco.security.CustomUserDetails; // Added import
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +28,7 @@ public class CustomerService {
     private final CustomerMapper customerMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final RoleService roleService;
+    private final UserRepository userRepository; // Added UserRepository
 
     @Value("${role.customer}")
     private String defaultUserRole;
@@ -37,11 +40,13 @@ public class CustomerService {
             return null;
         }
 
-        String username = authentication.getName();
-        UserEntity user = (UserEntity) authentication.getPrincipal();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        UserEntity user = userRepository.findById(userDetails.getGenericUserId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "User not found with ID: " + userDetails.getGenericUserId()));
 
         return customerRepository.findByUser(user).orElseThrow(() -> new EntityNotFoundException(
-                "Customer not found for authenticated user: " + username));
+                "Customer not found for authenticated user: " + userDetails.getUsername()));
     }
 
     @Transactional(readOnly = true)

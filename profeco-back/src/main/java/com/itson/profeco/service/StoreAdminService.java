@@ -2,15 +2,9 @@ package com.itson.profeco.service;
 
 import java.util.Set;
 import java.util.UUID;
-
-import com.itson.profeco.exceptions.OperationNotAllowedException;
-import com.itson.profeco.exceptions.ResourceNotFoundException;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

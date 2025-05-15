@@ -32,7 +32,7 @@ public class Inconsistency {
     private Double actualPrice;
 
     @Column(nullable = false)
-    private LocalDateTime date;
+    private LocalDateTime dateTime;
 
     @ManyToOne
     private InconsistencyStatus status;
