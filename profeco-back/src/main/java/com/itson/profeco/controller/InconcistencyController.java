@@ -33,23 +33,24 @@ public class InconcistencyController {
     }
 
     @GetMapping()
+    @PreAuthorize("hasRole('PROFECO_ADMIN')")
     public List<Inconsistency> findAll() {
         return this.inconsistencyService.findAll();
     }
 
-    @GetMapping("{id}")
+    @GetMapping("{id}") // Sin restricciones: acceso público
     public Inconsistency findById(@PathVariable UUID id) {
         return this.inconsistencyService.getById(id);   
     }
 
     @PostMapping()
-    @PreAuthorize("hasRole('CUSTOMER')") // TODO: Needs to be ROLE_CUSTOMER
+    @PreAuthorize("hasRole('CUSTOMER')") // Solo CUSTOMER puede guardar
     public Inconsistency save(@RequestBody SaveInconsistencyRequest request) throws InvalidDataException, NotFoundException {
         return this.inconsistencyService.save(request);
     }
 
     @PatchMapping()
-    @PreAuthorize("hasRole('PROFECO')") // TODO: Check later about ROLE_ADMIN or ROLE_PROFECO
+    @PreAuthorize("hasRole('PROFECO_ADMIN')") // Solo PROFECTO_ADMIN puede actualizar
     public Inconsistency update(@RequestBody UpdateInconsistencyStatusRequest request) throws NotFoundException {
         return this.inconsistencyService.update(request);
     }
