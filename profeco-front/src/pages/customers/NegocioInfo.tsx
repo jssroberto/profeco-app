@@ -22,7 +22,7 @@ const Negociosinfo = () => {
   useEffect(() => {
     const fetchBusinessData = async () => {
       try {
-        // datos del super
+        //  carga de datos del super
         const { data } = await axios.get(
           `http://localhost:8080/api/v1/stores/${id}`
         );
@@ -52,7 +52,7 @@ const Negociosinfo = () => {
           description: `Ubicación: ${data.location}`,
         });
 
-        // cargqa de ofertas y rpoductos ahahahha
+        // cargqa de productos SIN OFERTA
         const { data: storeProducts } = await axios.get(
           `http://localhost:8080/api/v1/store-products/by-store/${id}/without-offer`,
           {
@@ -88,8 +88,54 @@ const Negociosinfo = () => {
             }
           })
         );
-
+        
         setProducts(productsWithInfo.filter(Boolean));
+
+        // carga de productos CON OFERTA
+        const { data: offerProducts } = await axios.get(
+          `http://localhost:8080/api/v1/store-product-offers/active-any`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const filteredOfferProducts = offerProducts.filter(
+          (offer: any) => offer.storeProduct.storeId === id
+        );
+
+        const offersWithInfo = await Promise.all(
+  filteredOfferProducts.map(async (offer: any) => {
+    try {
+      const { data: product } = await axios.get(
+        `http://localhost:8080/api/v1/products/${offer.storeProduct.productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return {
+        id: offer.storeProduct.productId,
+        title: product.name || "Producto sin nombre",
+        description: `Precio original: $${offer.storeProduct.price} - Ahora: $${offer.offerPrice}`,
+        validUntil: offer.offerEndDate,
+        discount: offer.offerPrice && offer.storeProduct.price
+          ? Math.round(
+              100 - (offer.offerPrice / offer.storeProduct.price) * 100
+            )
+          : 0,
+      };
+    } catch {
+      return null;
+    }
+  })
+);
+
+setOffers(offersWithInfo.filter(Boolean));
+
+
         //console.log("Productos cargados:", productsWithInfo.filter(Boolean)); // para pruebassss
       } catch (error) {
         setBusinessData(null);
