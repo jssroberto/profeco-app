@@ -1,6 +1,7 @@
 package com.itson.profeco.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -12,6 +13,7 @@ import com.itson.profeco.service.StoreAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/store-admins")
 @RequiredArgsConstructor
 @Tag(name = "Store Admin", description = "Operations related to Store Administrators")
+@SecurityRequirement(name = "bearerAuth")
+@PreAuthorize("hasRole(@environment.getProperty('role.store-admin'))")
 public class StoreAdminController {
 
     private final StoreAdminService storeAdminService;

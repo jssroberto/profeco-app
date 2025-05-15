@@ -5,18 +5,18 @@
     "description": "The directory where files are uploaded"
   },
   {
-    "name": "customer.default-role",
+    "name": "role.customer",
     "type": "java.lang.String",
-    "description": "A description for 'customer.default-role'"
+    "description": "The role assigned to customers"
   },
   {
-    "name": "store.admin.default-role",
+    "name": "role.store-admin",
     "type": "java.lang.String",
-    "description": "A description for 'store.admin.default-role'"
+    "description": "The role assigned to store administrators"
   },
   {
-    "name": "profeco.admin.default-role",
+    "name": "role.profeco-admin",
     "type": "java.lang.String",
-    "description": "A description for 'profeco.admin.default-role'"
+    "description": "The role assigned to Profeco administrators"
   }
 ]}

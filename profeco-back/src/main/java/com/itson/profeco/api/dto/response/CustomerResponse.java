@@ -29,6 +29,6 @@ public class CustomerResponse {
 
     private Set<UUID> wishesIds;
 
-    private Set<UUID> rolesIds;
+    private Set<String> roles;
 
 }

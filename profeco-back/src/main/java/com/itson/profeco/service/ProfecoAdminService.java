@@ -27,7 +27,7 @@ public class ProfecoAdminService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    @Value("${profeco.admin.default-role}")
+    @Value("${role.profeco-admin}")
     private String defaultUserRole;
 
     private ProfecoAdmin getAuthenticatedAdminEntity() {

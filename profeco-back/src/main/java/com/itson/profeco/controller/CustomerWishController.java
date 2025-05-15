@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 @RequiredArgsConstructor
 @Tag(name = "Customer Wish Management", description = "Operations for Customers on their own Wishes")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasRole('CUSTOMER')")
+@PreAuthorize("hasRole(@environment.getProperty('role.customer'))")
 public class CustomerWishController {
 
     private final WishService wishService;

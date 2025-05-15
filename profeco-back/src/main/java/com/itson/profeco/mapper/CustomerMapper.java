@@ -37,7 +37,7 @@ public interface CustomerMapper {
     @Mapping(target = "inconsistenciesIds",
             expression = "java(mapInconsistenciesToIds(customer.getInconsistencies()))")
     @Mapping(target = "wishesIds", expression = "java(mapWishesToIds(customer.getWishes()))")
-    @Mapping(target = "rolesIds", expression = "java(mapRolesToIds(customer.getUser().getRoles()))")
+    @Mapping(target = "roles", expression = "java(mapRolesToNames(customer.getUser().getRoles()))")
     @Mapping(target = "userId", source = "user.id")
     CustomerResponse toResponse(Customer customer);
 
@@ -69,10 +69,10 @@ public interface CustomerMapper {
         return wishes.stream().map(Wish::getId).collect(Collectors.toSet());
     }
 
-    default Set<UUID> mapRolesToIds(Set<Role> roles) {
+    default Set<String> mapRolesToNames(Set<Role> roles) {
         if (roles == null) {
             return null;
         }
-        return roles.stream().map(Role::getId).collect(Collectors.toSet());
+        return roles.stream().map(Role::getName).collect(Collectors.toSet());
     }
 }

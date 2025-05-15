@@ -65,9 +65,7 @@ public class InconsistencyService {
         if (status == null) {
             throw new NotFoundException("El estado no es válido");
         }
-        if (storeProduct == null) {
-            throw new NotFoundException("Store product no encontrado");
-        }
+        
         newInconsistency.setActualPrice(inconsistency.getActualPrice());
         newInconsistency.setPublishedPrice(inconsistency.getPublishedPrice());
         newInconsistency.setDate(inconsistency.getDate());
@@ -83,9 +81,7 @@ public class InconsistencyService {
             throw new NotFoundException("Estado de inconsitencia inválido");
         }
         Inconsistency inconsistency = this.inconsistencyRepository.getReferenceById(request.getUuid());
-        if (inconsistency == null) {
-            throw new NotFoundException("La inconsistencia a actualizar no existe");
-        }
+
         inconsistency.setStatus(status);
         return this.inconsistencyRepository.save(inconsistency);
     }
