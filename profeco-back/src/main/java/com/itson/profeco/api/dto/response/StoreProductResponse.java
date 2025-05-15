@@ -1,6 +1,7 @@
-package com.itson.profeco.api.dto.request;
+package com.itson.profeco.api.dto.response;
 
-
+import com.itson.profeco.model.Product;
+import com.itson.profeco.model.Store;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,18 +11,18 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class StoreProductRequest {
+public class StoreProductResponse {
 
     @NotNull(message = "Price is required")
     private BigDecimal price;
 
     @NotNull(message = "Store is required")
-    private UUID store;
+    private UUID storeId;
 
     @NotNull(message = "Product is required")
-    private UUID product;
+    private UUID productId;
 }
