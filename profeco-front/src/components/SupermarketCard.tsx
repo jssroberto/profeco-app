@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 interface Supermarket {
+  id:string;
   name: string;
   image: string;
   reviews: number;
@@ -27,6 +28,7 @@ const renderStars = (rating: number) => {
 };
 
 const SupermarketCard: React.FC<Supermarket> = ({
+  id,
   name,
   image,
   reviews,
@@ -61,7 +63,7 @@ const SupermarketCard: React.FC<Supermarket> = ({
           {description}
         </p>
 
-        <Link to={"/negocios/123"}>
+        <Link to={`/negocios/${id}`}>
           <button
             className="mt-auto border border-[#aaadb0] text-[#681837] font-medium py-2 rounded-lg transition-colors ease-in-out duration-500 hover:bg-[#681837] hover:text-white w-full cursor-pointer"
             style={{ boxShadow: "0 1px 2px 0 rgba(30,30,50,0.04)" }}

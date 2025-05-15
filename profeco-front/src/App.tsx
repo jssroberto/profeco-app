@@ -17,7 +17,6 @@ import Negociosinfo from "./pages/customers/NegocioInfo";
 
 import { AdminInconsistencias } from "./pages/storeAdmins/AdminInconsistencias";
 import { AdminComentarios } from "./pages/storeAdmins/AdminComentarios";
-import AdminDashboard from "./pages/storeAdmins/StoreAdminDashboard";
 import StoreAdminDashboard from "./pages/storeAdmins/StoreAdminDashboard";
 import { StoreAdminProvider } from "./context/StoreAdminContext";
 import { CustomerProvider } from "./context/CustomerContext";
