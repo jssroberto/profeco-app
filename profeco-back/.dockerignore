@@ -1,0 +1,52 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+.gitkeep
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/ # Default IntelliJ output directory
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/ # Default Eclipse output directory (can conflict with other `bin` dirs)
+target-eclipse/ # Common for Eclipse m2e plugin
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/
+build/ # Can conflict, see build tool section
+dist/  # Can conflict, see build tool section
+*.nbattrs
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/
+
+# Gradle
+.gradle/
+build/
+
+# --- Logs ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+hs_err_pid* # HotSpot JVM error logs

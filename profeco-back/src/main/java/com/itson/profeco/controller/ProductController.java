@@ -6,11 +6,9 @@ import java.util.UUID;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -81,42 +79,42 @@ public class ProductController {
     }
 
     // Maybe we ain't gonna use these methods.
-    // 
+    //
     // @Operation(summary = "Update product",
-    //         description = "Updates an existing product's details (excluding image).")
+    // description = "Updates an existing product's details (excluding image).")
     // @ApiResponses(value = {
-    //         @ApiResponse(responseCode = "200", description = "Product updated successfully"),
-    //         @ApiResponse(responseCode = "404", description = "Product not found"),
-    //         @ApiResponse(responseCode = "400", description = "Invalid input")})
+    // @ApiResponse(responseCode = "200", description = "Product updated successfully"),
+    // @ApiResponse(responseCode = "404", description = "Product not found"),
+    // @ApiResponse(responseCode = "400", description = "Invalid input")})
     // @PutMapping("/{id}")
     // public ResponseEntity<ProductResponse> updateProduct(@PathVariable UUID id,
-    //         @Valid @org.springframework.web.bind.annotation.RequestBody ProductRequest productRequest) {
-    //     ProductResponse updatedProduct = productService.updateProduct(id, productRequest);
-    //     return ResponseEntity.ok(updatedProduct);
+    // @Valid @org.springframework.web.bind.annotation.RequestBody ProductRequest productRequest) {
+    // ProductResponse updatedProduct = productService.updateProduct(id, productRequest);
+    // return ResponseEntity.ok(updatedProduct);
     // }
 
     // @Operation(summary = "Update product image",
-    //         description = "Updates an existing product's image.")
+    // description = "Updates an existing product's image.")
     // @ApiResponses(value = {
-    //         @ApiResponse(responseCode = "200", description = "Product image updated successfully"),
-    //         @ApiResponse(responseCode = "404", description = "Product not found")})
+    // @ApiResponse(responseCode = "200", description = "Product image updated successfully"),
+    // @ApiResponse(responseCode = "404", description = "Product not found")})
     // @PutMapping("/{id}/image")
     // public ResponseEntity<ProductResponse> updateProductImage(@PathVariable UUID id,
-    //         @RequestPart("image") MultipartFile image) {
-    //     String uniqueFilename = fileStorageService.store(image);
-    //     String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-    //             .path("/uploads/images/").path(uniqueFilename).toUriString();
-    //     ProductResponse updatedProduct = productService.updateProductImage(id, imageUrl);
-    //     return ResponseEntity.ok(updatedProduct);
+    // @RequestPart("image") MultipartFile image) {
+    // String uniqueFilename = fileStorageService.store(image);
+    // String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+    // .path("/uploads/images/").path(uniqueFilename).toUriString();
+    // ProductResponse updatedProduct = productService.updateProductImage(id, imageUrl);
+    // return ResponseEntity.ok(updatedProduct);
     // }
 
     // @Operation(summary = "Delete product", description = "Deletes a product by its ID.")
     // @ApiResponses(value = {
-    //         @ApiResponse(responseCode = "204", description = "Product deleted successfully"),
-    //         @ApiResponse(responseCode = "404", description = "Product not found")})
+    // @ApiResponse(responseCode = "204", description = "Product deleted successfully"),
+    // @ApiResponse(responseCode = "404", description = "Product not found")})
     // @DeleteMapping("/{id}")
     // public ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
-    //     productService.deleteProduct(id);
-    //     return ResponseEntity.noContent().build();
+    // productService.deleteProduct(id);
+    // return ResponseEntity.noContent().build();
     // }
 }

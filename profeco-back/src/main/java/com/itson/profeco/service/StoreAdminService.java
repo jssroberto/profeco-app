@@ -29,7 +29,7 @@ public class StoreAdminService {
     private final RoleService roleService;
 
     @Value("${store.admin.default-role}")
-    private String DEFAULT_USER_ROLE;
+    private String defaultUserRole;
 
     @Transactional(readOnly = true)
     public StoreAdminResponse getCurrentStoreAdmin() {
@@ -54,7 +54,6 @@ public class StoreAdminService {
     }
 
 
-
     @Transactional
     public StoreAdminResponse saveStoreAdmin(StoreAdminRequest storeAdminRequest) {
         StoreAdmin storeAdmin = storeAdminMapper.toEntity(storeAdminRequest);
@@ -66,7 +65,7 @@ public class StoreAdminService {
             throw new IllegalStateException("User entity was not created for store admin.");
         }
 
-        Role defaultRole = roleService.getRoleEntityByName(DEFAULT_USER_ROLE);
+        Role defaultRole = roleService.getRoleEntityByName(defaultUserRole);
         user.setRoles(Set.of(defaultRole));
 
         StoreAdmin savedStoreAdmin = storeAdminRepository.save(storeAdmin);

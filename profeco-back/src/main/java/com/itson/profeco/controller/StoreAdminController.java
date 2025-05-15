@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.itson.profeco.api.dto.response.ProfecoAdminResponse;
-import com.itson.profeco.service.ProfecoAdminService;
+import com.itson.profeco.api.dto.response.StoreAdminResponse;
+import com.itson.profeco.service.StoreAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -17,23 +17,24 @@ import lombok.RequiredArgsConstructor;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
-@RequestMapping("/api/v1/profeco-admins")
+@RequestMapping("/api/v1/store-admins")
 @RequiredArgsConstructor
-@Tag(name = "Profeco Admin", description = "Operations related to Profeco Administrators")
-public class ProfecoAdminController {
+@Tag(name = "Store Admin", description = "Operations related to Store Administrators")
+public class StoreAdminController {
 
-    private final ProfecoAdminService profecoAdminService;
+    private final StoreAdminService storeAdminService;
 
-    @Operation(summary = "Get current Profeco Admin",
-            description = "Retrieves the currently authenticated Profeco administrator's details.")
+    @Operation(summary = "Get current Store Admin",
+            description = "Retrieves the currently authenticated Store administrator's details.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
-                    description = "Successfully retrieved Profeco Admin details"),
-            @ApiResponse(responseCode = "404", description = "Profeco Admin not found")})
+                    description = "Successfully retrieved Store Admin details"),
+            @ApiResponse(responseCode = "404",
+                    description = "Store Admin not found for the authenticated user")})
     @GetMapping("/me")
-    public ResponseEntity<ProfecoAdminResponse> getCurrentProfecoAdmin(
+    public ResponseEntity<StoreAdminResponse> getCurrentStoreAdmin(
             @AuthenticationPrincipal UserDetails userDetails) {
-        ProfecoAdminResponse response = profecoAdminService.getCurrentProfecoAdmin();
+        StoreAdminResponse response = storeAdminService.getCurrentStoreAdmin();
         return ResponseEntity.ok(response);
     }
 

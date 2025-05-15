@@ -28,7 +28,7 @@ public class CustomerService {
     private final RoleService roleService;
 
     @Value("${customer.default-role}")
-    private String DEFAULT_USER_ROLE;
+    private String defaultUserRole;
 
     private Customer getAuthenticatedCustomerEntity() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -97,7 +97,7 @@ public class CustomerService {
             throw new IllegalArgumentException("The password cannot be empty for a new customer.");
         }
 
-        Role defaultRole = roleService.getRoleEntityByName(DEFAULT_USER_ROLE);
+        Role defaultRole = roleService.getRoleEntityByName(defaultUserRole);
         user.setRoles(Set.of(defaultRole));
 
         Customer savedCustomer = customerRepository.save(customer);
