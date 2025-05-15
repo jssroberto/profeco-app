@@ -41,6 +41,8 @@ public interface StoreProductRepository extends JpaRepository<StoreProduct, UUID
 
     boolean existsByProductAndStoreAndOfferPrice(Product product, Store store, BigDecimal offerPrice);
 
+    List <StoreProduct> findByStore_IdAndProduct_Id(UUID storeId, UUID productId);
+
     @Query("SELECT sp FROM StoreProduct sp WHERE " +
             "sp.offerPrice IS NOT NULL AND " +
             "(:storeId IS NULL OR sp.store.id = :storeId) AND " +

@@ -19,9 +19,6 @@ public class StoreProductRequest {
     @NotNull(message = "Price is required")
     private BigDecimal price;
 
-    @NotNull(message = "Store is required")
-    private UUID store;
-
     @NotNull(message = "Product is required")
     private UUID product;
 }

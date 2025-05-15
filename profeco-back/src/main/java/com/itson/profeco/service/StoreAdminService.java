@@ -2,9 +2,15 @@ package com.itson.profeco.service;
 
 import java.util.Set;
 import java.util.UUID;
+
+import com.itson.profeco.exceptions.OperationNotAllowedException;
+import com.itson.profeco.exceptions.ResourceNotFoundException;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,6 +116,28 @@ public class StoreAdminService {
         storeAdminRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
+    public Store getAuthenticatedStoreAdminStore() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new IllegalStateException("No hay un usuario autenticado");
+        }
+
+        String username = authentication.getName();
+        if (username == null || username.isEmpty()) {
+            throw new IllegalStateException(
+                    "No se pudo determinar el email del usuario autenticado");
+        }
+
+        StoreAdmin storeAdmin = storeAdminRepository.findByUser_Email(username)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "StoreAdmin no encontrado para el usuario: " + username));
+
+
+        return storeAdmin.getStore();
+    }
 
 
     // @Transactional(readOnly = true)

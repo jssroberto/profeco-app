@@ -1,5 +1,6 @@
 package com.itson.profeco.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import com.itson.profeco.api.dto.request.WishRequest;
@@ -55,6 +56,7 @@ public class WishService {
         wishMapper.updateWishFromRequest(wishRequest, wish);
         wish.setCustomer(customer);
         wish.setStore(store);
+        wish.setDate(LocalDate.now());
 
 
         Wish savedWish = wishRepository.save(wish);

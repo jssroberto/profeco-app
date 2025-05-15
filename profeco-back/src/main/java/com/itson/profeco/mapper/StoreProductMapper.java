@@ -33,20 +33,18 @@ public interface StoreProductMapper {
     @Mapping(target = "offerStartDate", ignore = true)
     @Mapping(target = "offerEndDate", ignore = true)
     @Mapping(target = "inconsistency", ignore = true)
-    @Mapping(target = "store", expression = "java(mapUuidToStoreObject(request.getStore()))")
-    @Mapping(target = "product", expression = "java(mapUuidToProductObject(request.getProduct()))")
+    @Mapping(target = "store", ignore = true)
+    @Mapping(target = "product", ignore = true)
     StoreProduct productRequestToEntity(StoreProductRequest request);
-
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "offerPrice", ignore = true)
     @Mapping(target = "offerStartDate", ignore = true)
     @Mapping(target = "offerEndDate", ignore = true)
     @Mapping(target = "inconsistency", ignore = true)
-    @Mapping(target = "store", expression = "java(request.getStore() != null ? mapUuidToStoreObject(request.getStore()) : null)")
-    @Mapping(target = "product", expression = "java(request.getProduct() != null ? mapUuidToProductObject(request.getProduct()) : null)")
+    @Mapping(target = "store", ignore = true)
+    @Mapping(target = "product", ignore = true)
     void updateEntityFromProductRequest(@MappingTarget StoreProduct entity, StoreProductRequest request);
-
 
 
     @Mapping(target = "id", ignore = true)

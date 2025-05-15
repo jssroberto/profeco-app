@@ -62,22 +62,23 @@ public class StoreProductController {
         return ResponseEntity.ok(storeProductService.getStoreProductById(id));
     }
 
-    @Operation(summary = "Update an existing store product (base price/details)",
-            description = "Updates base details (like price, store, or product association) of an existing store product. Offer details are managed separately.")
+    @Operation(summary = "Update an existing store product by its associated Product ID within the current admin's store",
+            description = "Updates details (price) of a store product. The specific store product is identified " +
+                    "by the 'product' (ID) field in the request body and the store associated with the authenticated STORE_ADMIN. " +
+                    "The 'product' field in the request body identifies which product's listing to update; it does not change the product association itself.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Store product updated successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = StoreProductResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body (e.g., missing product ID)"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have STORE_ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "Store product not found")
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have STORE_ADMIN role or is not owner of the store product"),
+            @ApiResponse(responseCode = "404", description = "Store product not found for the given product ID in the admin's store")
     })
-    @PutMapping("/{id}")
+    @PutMapping("/by-product")
     @PreAuthorize("hasRole('STORE_ADMIN')")
-    public ResponseEntity<StoreProductResponse> updateStoreProduct(
-            @Parameter(description = "ID of the store product to update") @PathVariable UUID id,
+    public ResponseEntity<StoreProductResponse> updateStoreProductByProductInCurrentStore(
             @Valid @RequestBody StoreProductRequest request) {
-        return ResponseEntity.ok(storeProductService.updateStoreProduct(id, request));
+        return ResponseEntity.ok(storeProductService.updateStoreProductByProductInCurrentStore(request));
     }
 
     @Operation(summary = "Delete a store product",

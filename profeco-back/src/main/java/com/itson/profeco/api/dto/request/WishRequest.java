@@ -21,9 +21,6 @@ public class WishRequest {
     @Size(max = 255, message = "Description cannot exceed 255 characters")
     private String description;
 
-    @NotNull(message = "Date cannot be null")
-    private LocalDate date;
-
     @NotNull(message = "Store ID cannot be null")
     private UUID storeId;
 

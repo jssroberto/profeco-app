@@ -4,13 +4,12 @@ import com.itson.profeco.api.dto.request.StoreOfferRequest;
 import com.itson.profeco.api.dto.request.StoreProductRequest;
 import com.itson.profeco.api.dto.response.StoreOfferResponse;
 import com.itson.profeco.api.dto.response.StoreProductResponse;
+import com.itson.profeco.exceptions.OperationNotAllowedException;
 import com.itson.profeco.exceptions.ResourceNotFoundException;
 import com.itson.profeco.mapper.StoreProductMapper;
-import com.itson.profeco.model.Inconsistency;
 import com.itson.profeco.model.Product;
 import com.itson.profeco.model.Store;
 import com.itson.profeco.model.StoreProduct;
-import com.itson.profeco.repository.InconsistencyRepository;
 import com.itson.profeco.repository.ProductRepository;
 import com.itson.profeco.repository.StoreProductRepository;
 import com.itson.profeco.repository.StoreRepository;
@@ -24,26 +23,31 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
 
+
 @Service
 @RequiredArgsConstructor
 public class StoreProductService {
 
     private final StoreProductRepository storeProductRepository;
     private final StoreProductMapper storeProductMapper;
-    private final StoreRepository storeRepository;
     private final ProductRepository productRepository;
+    private final StoreRepository storeRepository;
+    private final StoreAdminService storeAdminService;
 
     @Transactional
     public StoreProductResponse createStoreProduct(StoreProductRequest request) {
-        Store store = storeRepository.findById(request.getStore())
-                .orElseThrow(() -> new ResourceNotFoundException("Store not found with ID: " + request.getStore()));
+        Store store = storeAdminService.getAuthenticatedStoreAdminStore();
 
         Product product = productRepository.findById(request.getProduct())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + request.getProduct()));
-
+        List<StoreProduct> existingEntries = storeProductRepository.findByStore_IdAndProduct_Id(store.getId(), product.getId());
+        if (!existingEntries.isEmpty()) {
+            throw new DataIntegrityViolationException(
+                    "A product listing for product ID " + product.getId() +
+                            " already exists in store ID " + store.getId() + ". Use update instead.");
+        }
 
         StoreProduct storeProduct = storeProductMapper.productRequestToEntity(request);
-
         storeProduct.setStore(store);
         storeProduct.setProduct(product);
         storeProduct.setOfferPrice(null);
@@ -55,38 +59,53 @@ public class StoreProductService {
         return storeProductMapper.entityToProductResponse(savedProduct);
     }
 
+    @Transactional
+    public StoreProductResponse updateStoreProductByProductInCurrentStore(StoreProductRequest request) {
+        Store currentUserStore = storeAdminService.getAuthenticatedStoreAdminStore();
+
+        if (request.getProduct() == null) {
+            throw new IllegalArgumentException("Product ID must be provided in the request to identify the store product to update.");
+        }
+        UUID targetProductId = request.getProduct();
+
+        StoreProduct existingProduct = storeProductRepository
+                .findByStore_IdAndProduct_Id(currentUserStore.getId(), targetProductId)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "StoreProduct not found for Product ID: " + targetProductId +
+                                " in the current admin's store (ID: " + currentUserStore.getId() + "). Cannot update."));
+
+        // Actualizar el precio base
+        if (request.getPrice() != null) {
+            existingProduct.setPrice(request.getPrice());
+        }
+
+       if(existingProduct.getPrice().floatValue()< existingProduct.getOfferPrice().floatValue()) {
+           existingProduct.setOfferPrice(null);
+           existingProduct.setOfferStartDate(null);
+           existingProduct.setOfferEndDate(null);
+       }
+
+
+        StoreProduct updatedProduct = storeProductRepository.save(existingProduct);
+        return storeProductMapper.entityToProductResponse(updatedProduct);
+    }
+
     @Transactional(readOnly = true)
     public StoreProductResponse getStoreProductById(UUID id) {
         StoreProduct storeProduct = findStoreProductEntityById(id);
         return storeProductMapper.entityToProductResponse(storeProduct);
     }
 
-    @Transactional
-    public StoreProductResponse updateStoreProduct(UUID id, StoreProductRequest request) {
-        StoreProduct existingProduct = findStoreProductEntityById(id);
 
-        if (request.getStore() != null) {
-            Store store = storeRepository.findById(request.getStore())
-                    .orElseThrow(() -> new ResourceNotFoundException("Store not found with ID: " + request.getStore()));
-            existingProduct.setStore(store);
-        }
-
-        if (request.getProduct() != null) {
-            Product product = productRepository.findById(request.getProduct())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + request.getProduct()));
-            existingProduct.setProduct(product);
-        }
-
-        storeProductMapper.updateEntityFromProductRequest(existingProduct, request);
-
-        StoreProduct updatedProduct = storeProductRepository.save(existingProduct);
-        return storeProductMapper.entityToProductResponse(updatedProduct);
-    }
 
     @Transactional
     public void deleteStoreProduct(UUID id) {
-        if (!storeProductRepository.existsById(id)) {
-            throw new ResourceNotFoundException("StoreProduct not found with id: " + id);
+        StoreProduct existingProduct = findStoreProductEntityById(id);
+        Store currentUserStore = storeAdminService.getAuthenticatedStoreAdminStore();
+        if (!existingProduct.getStore().getId().equals(currentUserStore.getId())) {
+            throw new OperationNotAllowedException("STORE_ADMIN can only delete products belonging to their own store.");
         }
         storeProductRepository.deleteById(id);
     }
@@ -104,6 +123,11 @@ public class StoreProductService {
     public StoreOfferResponse applyOrUpdateOffer(UUID storeProductId, StoreOfferRequest request) {
         validateOfferDates(request.getOfferStartDate(), request.getOfferEndDate());
         StoreProduct existingProduct = findStoreProductEntityById(storeProductId);
+        Store currentUserStore = storeAdminService.getAuthenticatedStoreAdminStore();
+
+        if (!existingProduct.getStore().getId().equals(currentUserStore.getId())) {
+            throw new OperationNotAllowedException("STORE_ADMIN can only manage offers for products in their own store.");
+        }
 
         if (request.getOfferPrice() != null &&
                 (existingProduct.getOfferPrice() == null || !existingProduct.getOfferPrice().equals(request.getOfferPrice())) &&
@@ -121,6 +145,10 @@ public class StoreProductService {
     @Transactional
     public StoreOfferResponse removeOffer(UUID storeProductId) {
         StoreProduct existingProduct = findStoreProductEntityById(storeProductId);
+        Store currentUserStore = storeAdminService.getAuthenticatedStoreAdminStore();
+        if (!existingProduct.getStore().getId().equals(currentUserStore.getId())) {
+            throw new OperationNotAllowedException("STORE_ADMIN can only remove offers for products in their own store.");
+        }
         existingProduct.setOfferPrice(null);
         existingProduct.setOfferStartDate(null);
         existingProduct.setOfferEndDate(null);
@@ -158,37 +186,30 @@ public class StoreProductService {
                 .map(storeProductMapper::entityToOfferResponse)
                 .collect(Collectors.toList());
     }
-
-
-
     @Transactional(readOnly = true)
     public List<StoreProductResponse> getProductsByStoreId(UUID storeId) {
         return storeProductRepository.findByStore_IdAndOfferPriceIsNull(storeId).stream()
                 .map(storeProductMapper::entityToProductResponse)
                 .collect(Collectors.toList());
     }
-
     @Transactional(readOnly = true)
     public List<StoreProductResponse> getProductsByStoreName(String storeName) {
         return storeProductRepository.findByStore_NameAndOfferPriceIsNull(storeName).stream()
                 .map(storeProductMapper::entityToProductResponse)
                 .collect(Collectors.toList());
     }
-
     @Transactional(readOnly = true)
     public List<StoreProductResponse> getProductsByProductName(String productName) {
         return storeProductRepository.findByProduct_NameAndOfferPriceIsNull(productName).stream()
                 .map(storeProductMapper::entityToProductResponse)
                 .collect(Collectors.toList());
     }
-
     @Transactional(readOnly = true)
     public List<StoreProductResponse> getProductsByPriceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
         return storeProductRepository.findByPriceBetweenAndOfferPriceIsNull(minPrice, maxPrice).stream()
                 .map(storeProductMapper::entityToProductResponse)
                 .collect(Collectors.toList());
     }
-
     @Transactional(readOnly = true)
     public StoreProductResponse getProductByStoreAndProductIds(UUID storeId, UUID productId) {
         return storeProductRepository.findOneByStore_IdAndProduct_IdAndOfferPriceIsNull(storeId, productId)
@@ -196,7 +217,6 @@ public class StoreProductService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "StoreProduct without offer not found for Store ID: " + storeId + " and Product ID: " + productId));
     }
-
     @Transactional(readOnly = true)
     public List<StoreProductResponse> findStoreProductsWithValidPrices(UUID storeId) {
         return storeProductRepository.findStoreProductsWithoutOfferOrderedByPrice(storeId).stream()
@@ -217,6 +237,4 @@ public class StoreProductService {
             throw new IllegalArgumentException("Offer start date must be before or equal to end date.");
         }
     }
-
-
 }
