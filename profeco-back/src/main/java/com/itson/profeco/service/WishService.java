@@ -25,6 +25,7 @@ public class WishService {
     private final WishRepository wishRepository;
     private final CustomerRepository customerRepository;
     private final StoreRepository storeRepository;
+    private final CustomerService customerService;
     private final WishMapper wishMapper;
 
 
@@ -44,8 +45,8 @@ public class WishService {
 
 
     @Transactional
-    public WishResponse createWishForCurrentUser(WishRequest wishRequest, UUID customerId) {
-
+    public WishResponse createWishForCurrentUser(WishRequest wishRequest) {
+        UUID customerId = customerService.getAuthenticatedCustomerEntity().getId();
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", "id", customerId));
 
@@ -67,8 +68,8 @@ public class WishService {
 
 
     @Transactional
-    public WishResponse updateWishForCurrentUser(UUID id, WishRequest wishRequest, UUID customerId) {
-
+    public WishResponse updateWishForCurrentUser(UUID id, WishRequest wishRequest) {
+        UUID customerId = customerService.getAuthenticatedCustomerEntity().getId();
         Wish existingWish = wishRepository.findByIdAndCustomerId(id, customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wish", "id", id + " for customer " + customerId));
 
@@ -87,8 +88,8 @@ public class WishService {
     }
 
     @Transactional
-    public void deleteWishForCurrentUser(UUID id, UUID customerId) {
-
+    public void deleteWishForCurrentUser(UUID id) {
+        UUID customerId = customerService.getAuthenticatedCustomerEntity().getId();
         if (!wishRepository.existsByIdAndCustomerId(id, customerId)) {
             throw new ResourceNotFoundException("Wish", "id", id + " for customer " + customerId);
         }

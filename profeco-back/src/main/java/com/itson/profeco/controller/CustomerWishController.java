@@ -26,7 +26,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 @RequiredArgsConstructor
 @Tag(name = "Customer Wish Management", description = "Operations for Customers on their own Wishes")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasRole(@environment.getProperty('role.customer'))")
 public class CustomerWishController {
 
     private final WishService wishService;
@@ -77,9 +76,7 @@ public class CustomerWishController {
     @PostMapping
     public ResponseEntity<WishResponse> createCustomerWish(
             @Valid @RequestBody WishRequest wishRequest) {
-        UUID customerId = getCurrentCustomerId();
-        WishResponse savedWish = wishService.createWishForCurrentUser(wishRequest, customerId);
-
+        WishResponse savedWish = wishService.createWishForCurrentUser(wishRequest);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -102,8 +99,7 @@ public class CustomerWishController {
     public ResponseEntity<WishResponse> updateCustomerWish(
             @Parameter(description = "ID of the wish to update", required = true) @PathVariable UUID id,
             @Valid @RequestBody WishRequest wishRequest) {
-        UUID customerId = getCurrentCustomerId();
-        WishResponse updatedWish = wishService.updateWishForCurrentUser(id, wishRequest, customerId);
+        WishResponse updatedWish = wishService.updateWishForCurrentUser(id, wishRequest);
         return ResponseEntity.ok(updatedWish);
     }
 
@@ -117,8 +113,7 @@ public class CustomerWishController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCustomerWish(
             @Parameter(description = "ID of the wish to delete", required = true) @PathVariable UUID id) {
-        UUID customerId = getCurrentCustomerId();
-        wishService.deleteWishForCurrentUser(id, customerId);
+        wishService.deleteWishForCurrentUser(id);
         return ResponseEntity.noContent().build();
     }
 }
