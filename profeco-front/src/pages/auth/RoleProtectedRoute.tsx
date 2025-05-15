@@ -1,22 +1,22 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+// components/RoleProtectedRoute.tsx
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
-const RoleProtectedRoute = ({ allowedRoles }: { allowedRoles: string[] }) => {
-  const { isAuthenticated, role, isLoading } = useAuth();
+interface RoleProtectedRouteProps {
+  allowedRoles: string[];
+}
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+export const RoleProtectedRoute = ({ allowedRoles }: RoleProtectedRouteProps) => {
+  const { token } = useAuth();
+  const userRole = localStorage.getItem('userRole'); 
 
-  if (!isAuthenticated) {
+  if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!role || !allowedRoles.includes(role)) {
+  if (!allowedRoles.includes(userRole || '')) {
     return <Navigate to="/unauthorized" replace />;
   }
 
   return <Outlet />;
 };
-
-export default RoleProtectedRoute;

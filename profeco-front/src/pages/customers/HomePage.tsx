@@ -1,28 +1,21 @@
 import React, { useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
 import SearchBar from "../../components/Searchbar";
 import MostSearchedProducts from "../../components/MostSearchedProducts";
 import PopularSupermarkets from "../../components/PopularSupermarkets";
 import { useUser } from "../../context/UserContext";
+import { useCustomer } from "../../context/CustomerContext";
 
 
 const HomePage: React.FC = () => {
 
-  /* prueba */
-  const {user: userData} = useUser();
-
-  console.log(userData?.email)
-
-  const { user, role } = useAuth();
-
-  console.log("logged as ", role)
+  const { customer } = useCustomer();
 
   return (
     <div className="pt-26 px-4 sm:px-6 lg:px-8 min-h-screen bg-white">
       <div className="max-w-7xl mx-auto">
 
         {/* Section #1 : title with searchbar */}
-        <h1 className="text-3xl font-bold text-black mb-6">Bienvenido, {user ? user.name : "usuario"}!</h1>
+        <h1 className="text-3xl font-bold text-black mb-6">Bienvenido, {customer?.name}!</h1>
         <div className="w-full max-w-3xl">
           <SearchBar
             context="global"

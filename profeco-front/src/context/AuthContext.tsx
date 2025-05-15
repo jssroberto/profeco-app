@@ -14,6 +14,7 @@ interface AuthContextType {
   role: string | null;
   user: UserData | null;
   isLoading: boolean;
+  token: string | null; 
   login: (authData: {
     accessToken: string;
     id: string;
@@ -33,11 +34,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     role: string | null;
     user: UserData | null;
     isLoading: boolean;
+    token: string | null; 
   }>({
     isAuthenticated: false,
     role: null,
     user: null,
-    isLoading: true
+    isLoading: true,
+    token: null
   });
 
   useEffect(() => {
@@ -52,7 +55,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             isAuthenticated: true,
             role: storedRole,
             user: storedUser ? JSON.parse(storedUser) : null,
-            isLoading: false
+            isLoading: false,
+            token
           });
         } catch (e) {
           console.error("Auth initialization failed", e);
@@ -61,7 +65,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setState(prev => ({
           ...prev,
-          isLoading: false
+          isLoading: false,
+          token: null
         }));
       }
     };
@@ -83,6 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       id: authData.id,
       email: authData.email,
       name: authData.name,
+      role: authData.roles[0],
       userEntityId: authData.userEntityId
     }));
 
@@ -95,7 +101,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         name: authData.name,
         userEntityId: authData.userEntityId
       },
-      isLoading: false
+      isLoading: false,
+      token: authData.accessToken
     });
   };
 
@@ -107,7 +114,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isAuthenticated: false,
       role: null,
       user: null,
-      isLoading: false
+      isLoading: false,
+      token: null
     });
   };
 

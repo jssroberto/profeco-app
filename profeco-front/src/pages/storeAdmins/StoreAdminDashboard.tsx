@@ -1,14 +1,11 @@
 // AdminDashboard.tsx
 import { MessageSquare, AlarmClock, Tags, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../../context/UserContext";
+import { useAuth } from "../../context/AuthContext";
+import { useEffect } from "react";
 
 const StoreAdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-
-
-  // try to fetch store data with the id
-
 
   const cards = [
     {
