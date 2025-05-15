@@ -1,11 +1,13 @@
 // AdminDashboard.tsx
 import { MessageSquare, AlarmClock, Tags, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { useEffect } from "react";
+import { useStoreAdmin } from "../../context/StoreAdminContext";
 
 const StoreAdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+
+  const { admin, store } = useStoreAdmin();
+  
 
   const cards = [
     {
@@ -33,8 +35,8 @@ const StoreAdminDashboard: React.FC = () => {
   return (
     <div className="p-8 space-y-6 mt-20">
       <div>
-        <h1 className="text-2xl font-bold">Bienvenido, </h1>
-        <p className="text-gray-600"></p>
+        <h1 className="text-2xl font-bold">Bienvenido, {admin?.name}</h1>
+        <p className="text-gray-600">{store?.name}, {store?.location}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

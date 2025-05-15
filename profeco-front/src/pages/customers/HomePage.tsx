@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import SearchBar from "../../components/Searchbar";
 import MostSearchedProducts from "../../components/MostSearchedProducts";
 import PopularSupermarkets from "../../components/PopularSupermarkets";
-import { useUser } from "../../context/UserContext";
 import { useCustomer } from "../../context/CustomerContext";
 
 

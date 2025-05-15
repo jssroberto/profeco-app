@@ -14,6 +14,7 @@ import ProductInfo from "./pages/customers/ProductInfo";
 import ReportInconsistency from "./pages/customers/ReportInconsistency";
 import Negocios from "./pages/customers/Negocios";
 import Negociosinfo from "./pages/customers/NegocioInfo";
+
 import { AdminInconsistencias } from "./pages/storeAdmins/AdminInconsistencias";
 import { AdminComentarios } from "./pages/storeAdmins/AdminComentarios";
 import AdminDashboard from "./pages/storeAdmins/StoreAdminDashboard";
@@ -21,6 +22,8 @@ import StoreAdminDashboard from "./pages/storeAdmins/StoreAdminDashboard";
 import { StoreAdminProvider } from "./context/StoreAdminContext";
 import { CustomerProvider } from "./context/CustomerContext";
 import { RoleProtectedRoute } from "./pages/auth/RoleProtectedRoute";
+import { ProfecoAdminProvider } from "./context/ProfecoAdminContext";
+import ProfecoDashboard from "./pages/profecoAdmins/ProfecoDashboard";
 
 function App() {
   return (
@@ -81,17 +84,15 @@ function App() {
             </Route>
 
             {/* routes for profeco admin */}
-            {/* <Route element={<RoleProtectedRoute allowedRoles={["PROFECO_ADMIN"]} />}>
+            <Route element={<RoleProtectedRoute allowedRoles={["PROFECO_ADMIN"]} />}>
               <Route element={
                 <ProfecoAdminProvider>
                   <Outlet />
                 </ProfecoAdminProvider>
               }>
-                <Route path="/admin-dashboard" element={<ProfecoAdminDashboard />} />
-                <Route path="/admin/inconsistencias" element={<ProfecoInconsistenciasView />} />
-                <Route path="/admin/stores" element={<ManageStores />} />
+                <Route path="/admin-dashboard" element={<ProfecoDashboard />} />
               </Route>
-            </Route> */}
+            </Route>
           </Routes>
         </main>
       </div>

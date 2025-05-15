@@ -7,8 +7,13 @@ interface RoleProtectedRouteProps {
 }
 
 export const RoleProtectedRoute = ({ allowedRoles }: RoleProtectedRouteProps) => {
-  const { token } = useAuth();
+  const { token, isLoading } = useAuth();
   const userRole = localStorage.getItem('userRole'); 
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
 
   if (!token) {
     return <Navigate to="/login" replace />;

@@ -38,13 +38,13 @@ export const StoreAdminProvider = ({ children }: { children: React.ReactNode }) 
     setLoading(true);
     try {
       // Fetch admin data
-      const adminRes = await axios.get('/api/v1/store-admins/me', {
+      const adminRes = await axios.get('http://localhost:8080/api/v1/store-admins/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAdmin(adminRes.data);
 
       // Fetch store data
-      const storeRes = await axios.get(`/api/v1/stores/${adminRes.data.storeId}`, {
+      const storeRes = await axios.get(`http://localhost:8080/api/v1/stores/${adminRes.data.storeId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStore(storeRes.data);
