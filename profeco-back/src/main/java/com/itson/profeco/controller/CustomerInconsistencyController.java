@@ -45,4 +45,5 @@ public class CustomerInconsistencyController {
         InconsistencyResponse response = inconsistencyService.saveInconsistency(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    
 }
