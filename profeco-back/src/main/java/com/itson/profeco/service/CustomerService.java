@@ -1,6 +1,8 @@
 package com.itson.profeco.service;
 
 import java.util.Set;
+
+import com.itson.profeco.model.StoreAdmin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
@@ -51,7 +53,23 @@ public class CustomerService {
 
     @Transactional(readOnly = true)
     public CustomerResponse getCurrentCustomer() {
-        Customer customer = getAuthenticatedCustomerEntity();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new IllegalStateException("No hay un usuario autenticado");
+        }
+
+        String username = authentication.getName();
+        if (username == null || username.isEmpty()) {
+            throw new IllegalStateException(
+                    "No se pudo determinar el email del usuario autenticado");
+        }
+
+        Customer customer = customerRepository.findByUser_Email(username)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "StoreAdmin no encontrado para el usuario: " + username));
+
         return customerMapper.toResponse(customer);
     }
 

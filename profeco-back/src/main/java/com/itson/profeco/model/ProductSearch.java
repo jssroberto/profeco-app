@@ -1,5 +1,6 @@
 package com.itson.profeco.model;
 
+import java.math.BigInteger;
 import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,7 +25,7 @@ public class ProductSearch {
     private UUID id;
 
     @Column(nullable = false)
-    private int searchCount;
+    private BigInteger searchCount;
 
     @ManyToOne
     private Preference preference;
