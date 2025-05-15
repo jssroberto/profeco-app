@@ -1,6 +1,7 @@
 package com.itson.profeco.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -12,6 +13,7 @@ import com.itson.profeco.service.ProfecoAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/profeco-admins")
 @RequiredArgsConstructor
 @Tag(name = "Profeco Admin", description = "Operations related to Profeco Administrators")
+@SecurityRequirement(name = "bearerAuth")
+@PreAuthorize("hasRole(@environment.getProperty('role.profeco-admin'))")
 public class ProfecoAdminController {
 
     private final ProfecoAdminService profecoAdminService;

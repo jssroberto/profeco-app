@@ -27,7 +27,7 @@ public class CustomerService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    @Value("${customer.default-role}")
+    @Value("${role.customer}")
     private String defaultUserRole;
 
     private Customer getAuthenticatedCustomerEntity() {

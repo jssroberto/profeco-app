@@ -36,7 +36,7 @@ public class RatingController {
     }
 
     @Operation(summary = "Create a new rating for a store")
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasRole(@environment.getProperty('role.customer'))")
     @PostMapping
     public ResponseEntity<RatingResponse> createRating(@Valid @RequestBody RatingRequest ratingRequest) {
         UUID customerId = getCurrentCustomerId();
@@ -58,7 +58,7 @@ public class RatingController {
     }
 
     @Operation(summary = "Get all ratings submitted by the current customer")
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasRole(@environment.getProperty('role.customer'))")
     @GetMapping("/my-ratings")
     public ResponseEntity<List<RatingResponse>> getMyRatings() {
         UUID customerId = getCurrentCustomerId();
@@ -90,15 +90,4 @@ public class RatingController {
         }
     }
 
-
-//    @Operation(summary = "[CUSTOMER] Delete a rating submitted by the current customer")
-//    @PreAuthorize("hasRole('CUSTOMER')")
-//    @DeleteMapping("/{ratingId}")
-//    @ResponseStatus(HttpStatus.NO_CONTENT)
-//    public ResponseEntity<Void> deleteMyRating(
-//            @Parameter(description = "ID of the rating to delete") @PathVariable UUID ratingId) {
-//        UUID customerId = getCurrentCustomerId();
-//        ratingService.deleteCustomerRating(ratingId, customerId);
-//        return ResponseEntity.noContent().build();
-//    }
 }

@@ -28,7 +28,7 @@ public class StoreAdminService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    @Value("${store.admin.default-role}")
+    @Value("${role.store-admin}")
     private String defaultUserRole;
 
     @Transactional(readOnly = true)

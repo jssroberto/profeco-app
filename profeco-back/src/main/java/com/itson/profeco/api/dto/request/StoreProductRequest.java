@@ -1,14 +1,12 @@
 package com.itson.profeco.api.dto.request;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import com.itson.profeco.model.Inconsistency;
 import com.itson.profeco.model.Product;
 import com.itson.profeco.model.Store;
-import jakarta.persistence.*;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.UUID;
 
 public class StoreProductRequest {
 
