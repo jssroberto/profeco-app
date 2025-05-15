@@ -1,6 +1,6 @@
 package com.itson.profeco.model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,7 +32,7 @@ public class Inconsistency {
     private Double actualPrice;
 
     @Column(nullable = false)
-    private LocalDate date;
+    private LocalDateTime date;
 
     @ManyToOne
     private InconsistencyStatus status;

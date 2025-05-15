@@ -9,13 +9,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.itson.profeco.api.dto.request.SaveInconsistencyRequest;
+import com.itson.profeco.api.dto.request.InconsistencyRequest;
 import com.itson.profeco.api.dto.request.UpdateInconsistencyStatusRequest;
 import com.itson.profeco.exceptions.InvalidDataException;
 import com.itson.profeco.exceptions.NotFoundException;
 import com.itson.profeco.model.Inconsistency;
 import com.itson.profeco.service.InconsistencyService;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -26,7 +27,8 @@ public class InconcistencyController {
     private final InconsistencyService inconsistencyService;
 
     @GetMapping()
-    @PreAuthorize("hasRole('PROFECO_ADMIN')")
+    @PreAuthorize("hasRole(@environment.getProperty('role.profeco'))")
+    @SecurityRequirement(name = "bearerAuth")
     public List<Inconsistency> findAll() {
         return this.inconsistencyService.findAll();
     }
@@ -37,14 +39,16 @@ public class InconcistencyController {
     }
 
     @PostMapping()
-    @PreAuthorize("hasRole(@environment.getProperty('role.profeco'))")
-    public Inconsistency save(@RequestBody SaveInconsistencyRequest request)
+    @PreAuthorize("hasRole(@environment.getProperty('role.customer'))")
+    @SecurityRequirement(name = "bearerAuth")
+    public Inconsistency save(@RequestBody InconsistencyRequest request)
             throws InvalidDataException, NotFoundException {
         return this.inconsistencyService.save(request);
     }
 
     @PatchMapping()
     @PreAuthorize("hasRole(@environment.getProperty('role.profeco'))")
+    @SecurityRequirement(name = "bearerAuth")
     public Inconsistency update(@RequestBody UpdateInconsistencyStatusRequest request)
             throws NotFoundException {
         return this.inconsistencyService.update(request);
