@@ -9,6 +9,7 @@ interface StoreOffer {
 }
 
 interface SearchedProductCardProps {
+  id: string; 
   imageUrl: string;
   name: string;
   brand: string;
@@ -23,6 +24,7 @@ const OfferBadge = () => (
 );
 
 const SearchedProductCard: React.FC<SearchedProductCardProps> = ({
+  id,
   imageUrl,
   name,
   brand,
@@ -30,7 +32,9 @@ const SearchedProductCard: React.FC<SearchedProductCardProps> = ({
   offers,
 }) => {
   return (
-    <div className="w-full bg-white rounded-xl shadow-md flex items-stretch p-4 gap-3 border border-gray-200 hover:shadow-lg transition-all duration-300">
+    <Link 
+    to={`/productos/${id}`}
+    className="w-full bg-white rounded-xl shadow-md flex items-stretch p-4 gap-3 border border-gray-200 hover:shadow-lg transition-all duration-300">
       {/* Product image */}
       <div className="flex-shrink-0 w-24 h-24 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
         <img
@@ -76,7 +80,7 @@ const SearchedProductCard: React.FC<SearchedProductCardProps> = ({
           </Link>
         ))}
       </div>
-    </div>
+    </Link>
   );
 };
 

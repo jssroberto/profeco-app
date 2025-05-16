@@ -10,7 +10,7 @@ import ProfecoAdminRegister from "./pages/auth/ProfecoAdminRegister";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import HomePage from "./pages/customers/HomePage";
 import Productos from "./pages/customers/Productos";
-import ProductInfo from "./pages/customers/ProductInfo";
+import BaseProductInfo from "./pages/customers/BaseProductInfo";
 import ReportInconsistency from "./pages/customers/ReportInconsistency";
 import Negocios from "./pages/customers/Negocios";
 import Negociosinfo from "./pages/customers/NegocioInfo"; 
@@ -26,6 +26,7 @@ import { ProfecoAdminProvider } from "./context/ProfecoAdminContext";
 import ProfecoDashboard from "./pages/profecoAdmins/ProfecoDashboard";
 import Reportes from "./pages/profecoAdmins/Reportes";
 import AdminPrecios from "./pages/storeAdmins/AdminPrecios";
+import ProductInfo from "./pages/customers/ProductInfo";
 
 function App() {
   return (
@@ -62,7 +63,7 @@ function App() {
               }>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/productos" element={<Productos />} />
-                <Route path="/productos/:id" element={<ProductInfo />} />
+                <Route path="/productos/:id" element={<BaseProductInfo />} />
                 <Route
                   path="/productos/:id/reportar"
                   element={<ReportInconsistency />}

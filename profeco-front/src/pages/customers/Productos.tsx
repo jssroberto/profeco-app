@@ -1,10 +1,9 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import SearchBar from "../../components/Searchbar";
 import SearchProducts from "../../components/SearchProducts";
 
-
 const Productos: React.FC = () => {
-
   const [query, setQuery] = useState("");
 
   return (
@@ -19,6 +18,11 @@ const Productos: React.FC = () => {
 
         {/* Section #1: idk */}
         <div className="w-full max-w-3xl">
+          {/* 
+            Sugerencia: 
+            Modifica SearchProducts para que cada resultado de producto tenga un Link a `/producto/{id}` 
+            donde id es el id base del producto, no el storeProductId.
+          */}
           <SearchProducts query={query} />
         </div>
       </div>

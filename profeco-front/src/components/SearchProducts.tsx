@@ -19,11 +19,9 @@ const SearchProducts: React.FC<{ query: string }> = ({ query }) => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:8080/api/v1/products",
-          {
-            headers: { Authorization: `Bearer ${token}`}
-          }
-        );
+        const res = await fetch("http://localhost:8080/api/v1/products", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await res.json();
         setProducts(Array.isArray(data) ? data : []);
       } catch {
@@ -36,13 +34,13 @@ const SearchProducts: React.FC<{ query: string }> = ({ query }) => {
   }, []);
 
   const filtered = Array.isArray(products)
-  ? products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.brandName.toLowerCase().includes(query.toLowerCase()) ||
-        p.categoryName.toLowerCase().includes(query.toLowerCase())
-    )
-  : [];
+    ? products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query.toLowerCase()) ||
+          p.brandName.toLowerCase().includes(query.toLowerCase()) ||
+          p.categoryName.toLowerCase().includes(query.toLowerCase())
+      )
+    : [];
 
   return (
     <section className="w-full mt-6 mb-8 max-w-4xl mx-auto px-4">
@@ -57,6 +55,7 @@ const SearchProducts: React.FC<{ query: string }> = ({ query }) => {
         ) : (
           filtered.map((item) => (
             <SearchedProductCard
+              id={item.id}
               key={item.id}
               imageUrl={
                 item.imageUrl.startsWith("http")
@@ -66,7 +65,7 @@ const SearchProducts: React.FC<{ query: string }> = ({ query }) => {
               name={item.name}
               brand={item.brandName}
               category={item.categoryName}
-              offers={[]} 
+              offers={[]}
             />
           ))
         )}

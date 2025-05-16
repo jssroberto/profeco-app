@@ -76,7 +76,7 @@ const ProductInfo = () => {
           </button>
           <img
             src={product?.imageUrl}
-            alt="Pan Blanco Artesanal Bimbo"
+            alt="Product image"
             className="w-full object-contain"
           />
         </div>

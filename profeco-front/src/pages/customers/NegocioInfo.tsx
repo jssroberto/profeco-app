@@ -221,7 +221,7 @@ const Negociosinfo = () => {
         onToggleFavorite={handleToggleFavorite}
       />
       <OffersSection offers={offers} />
-      <ProductsSection products={products} />
+      <ProductsSection products={products} storeId={id || ""}/>
       <StoreWish storeId={id || ""} />
       <ReviewSection
         reviews={reviews}

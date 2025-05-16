@@ -7,13 +7,15 @@ interface Product {
   price: number;
   originalPrice?: number;
   category: string;
+  storeProductId: string;
 }
 
 interface ProductsSectionProps {
   products: Product[];
+  storeId: string; // nuevo prop
 }
 
-const ProductsSection = ({ products }: ProductsSectionProps) => {
+const ProductsSection = ({ products, storeId }: ProductsSectionProps) => {
   return (
     <section className="py-8 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
@@ -22,7 +24,7 @@ const ProductsSection = ({ products }: ProductsSectionProps) => {
           {products.map((product) => (
             <Link
               key={product.id}
-              to={`/productos/${product?.storeProductId}`}
+              to={`/negocios/${storeId}/productos/${product.storeProductId}`}
               className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
             >
               <img
