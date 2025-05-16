@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import SupermarketCard from "./SupermarketCard";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
@@ -13,7 +13,7 @@ interface Supermarket {
   description: string;
 }
 
-const PopularSupermarkets = () => {
+const PopularSupermarkets: React.FC<{ query: string }> = ({ query }) => {
   const [supermarkets, setSupermarkets] = useState<Supermarket[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
@@ -22,10 +22,12 @@ const PopularSupermarkets = () => {
 
   useEffect(() => {
     const fetchSupermarkets = async () => {
+      setLoading(true);
       try {
-        const { data } = await axios.get("http://localhost:8080/api/v1/stores", {headers: {
-              Authorization: `Bearer ${token}`,
-            }});
+        const { data } = await axios.get("http://localhost:8080/api/v1/stores", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         const marketsWithRatings = await Promise.all(
           data.map(async (store: any) => {
             let rating = 0;
@@ -49,6 +51,7 @@ const PopularSupermarkets = () => {
             };
           })
         );
+
         setSupermarkets(marketsWithRatings);
       } catch {
         setSupermarkets([]);
@@ -58,21 +61,32 @@ const PopularSupermarkets = () => {
     };
 
     fetchSupermarkets();
-  }, []);
+  }, [token]);
 
-  const totalPages = Math.ceil(supermarkets.length / supermarketsPerPage);
+  const filteredSupermarkets = useMemo(() => {
+    return supermarkets.filter((s) =>
+      s.name.toLowerCase().includes(query.toLowerCase()) ||
+      s.location.toLowerCase().includes(query.toLowerCase())
+    );
+  }, [supermarkets, query]);
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [query]);
+
+  const totalPages = Math.ceil(filteredSupermarkets.length / supermarketsPerPage);
   const startIndex = currentPage * supermarketsPerPage;
-  const visibleSupermarkets = supermarkets.slice(startIndex, startIndex + supermarketsPerPage);
+  const visibleSupermarkets = filteredSupermarkets.slice(startIndex, startIndex + supermarketsPerPage);
 
   const nextPage = () => {
     if (currentPage < totalPages - 1) {
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   };
 
   const prevPage = () => {
     if (currentPage > 0) {
-      setCurrentPage(prev => prev - 1);
+      setCurrentPage((prev) => prev - 1);
     }
   };
 
@@ -83,41 +97,49 @@ const PopularSupermarkets = () => {
   return (
     <section className="w-full mx-auto mt-10 mb-4 px-4 max-w-7xl">
       <h2 className="text-xl font-medium text-[#611232] mb-4 ml-1">
-        Supermercados populares
+        Supermercados encontrados: {filteredSupermarkets.length}
       </h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {visibleSupermarkets.map((market) => (
-          <SupermarketCard
-            key={market.id}
-            id={market.id}
-            name={market.name}
-            image={market.imageUrl}
-            reviews={market.reviews}
-            rating={market.rating}
-            description={market.description}
-          />
-        ))}
-      </div>
-      {supermarkets.length > supermarketsPerPage && (
-        <div className="flex justify-center items-center mt-6 gap-4">
-          <button
-            onClick={prevPage}
-            disabled={currentPage === 0}
-            className="px-4 py-2 rounded-lg border border-[#aaadb0] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
-          >
-            Anterior
-          </button>
-          <span className="text-[#681837]">
-            Página {currentPage + 1} de {totalPages}
-          </span>
-          <button
-            onClick={nextPage}
-            disabled={currentPage === totalPages - 1}
-            className="px-4 py-2 rounded-lg border border-[#aaadb0] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
-          >
-            Siguiente
-          </button>
-        </div>
+
+      {filteredSupermarkets.length === 0 ? (
+        <p className="text-gray-500">No se encontraron supermercados.</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {visibleSupermarkets.map((market) => (
+              <SupermarketCard
+                key={market.id}
+                id={market.id}
+                name={market.name}
+                image={market.imageUrl}
+                reviews={market.reviews}
+                rating={market.rating}
+                description={market.description}
+              />
+            ))}
+          </div>
+
+          {filteredSupermarkets.length > supermarketsPerPage && (
+            <div className="flex justify-center items-center mt-6 gap-4">
+              <button
+                onClick={prevPage}
+                disabled={currentPage === 0}
+                className="px-4 py-2 rounded-lg border border-[#aaadb0] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
+              >
+                Anterior
+              </button>
+              <span className="text-[#681837]">
+                Página {currentPage + 1} de {totalPages}
+              </span>
+              <button
+                onClick={nextPage}
+                disabled={currentPage === totalPages - 1}
+                className="px-4 py-2 rounded-lg border border-[#aaadb0] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
+        </>
       )}
     </section>
   );
