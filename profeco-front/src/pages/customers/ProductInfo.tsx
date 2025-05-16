@@ -11,26 +11,39 @@ const ProductInfo = () => {
   const { id } = useParams();
   const { token } = useAuth();
   const [product, setProduct] = useState<any>(null);
-  const [productStore, setProductStore] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const storeResponse = await axios.get(
-          `http://localhost:8080/api/v1/store-products/e5fb1d68-4352-417d-b154-65cb2d3e0001`,
+        setLoading(true);
+        const productStoreResponse = await axios.get(
+          `http://localhost:8080/api/v1/store-products/${id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setProductStore(storeResponse.data);
-        if (storeResponse.data?.productId) {
+        if (productStoreResponse.data?.productId) {
           const productResponse = await axios.get(
-            `http://localhost:8080/api/v1/products/${storeResponse.data.productId}`,
+            `http://localhost:8080/api/v1/products/${productStoreResponse.data.productId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          setProduct(productResponse.data);
+          const storeResponse = await axios.get(
+            `http://localhost:8080/api/v1/stores/${productStoreResponse.data.storeId}`,
+
+            { headers: { Authorization: `Bearer ${token}` }}
+          );
+          setProduct({
+            name: productResponse.data.name,
+            imageUrl: productResponse.data.imageUrl.startsWith("http")
+              ? productResponse.data.imageUrl
+              : `http://${productResponse.data.imageUrl}`,
+            price: productStoreResponse.data.price,
+            storeName: storeResponse.data.name
+          });
         }
       } catch (e) {
         console.error(e);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -43,7 +56,7 @@ const ProductInfo = () => {
             <Heart className="w-6 h-6 text-gray-600" />
           </button>
           <img
-            src={"http://" + product?.imageUrl}
+            src={product?.imageUrl}
             alt="Pan Blanco Artesanal Bimbo"
             className="w-full object-contain"
           />
@@ -58,11 +71,11 @@ const ProductInfo = () => {
               {product?.name}
             </h1>
             <div className="flex items-baseline gap-2 mt-4">
-              <span className="text-4xl font-bold">$50</span>
+              <span className="text-4xl font-bold">{product?.price}</span>
             </div>
             <div className="flex gap-4 text-gray-600 mt-4 text-sm">
-              <span>Marca: BIMBO</span>
-              <span>Vendido por: Walmart</span>
+              {/* <span>Marca: BIMBO</span> */}
+              <span>Vendido por: {product?.storeName}</span>
             </div>
           </div>
 
