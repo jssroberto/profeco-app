@@ -33,7 +33,7 @@ const Navbar: React.FC = () => {
   ];
 
   const profecoAdminLinks: LinkItem[] = [
-    { name: "Inicio", path: "/panelAdmin" },
+    { name: "Inicio", path: "/admin-dashboard" },
     { name: "Reportes de Inconsistencias", path: "/reportes" },
   ];
   return (

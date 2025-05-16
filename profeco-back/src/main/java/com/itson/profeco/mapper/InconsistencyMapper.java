@@ -10,7 +10,7 @@ import com.itson.profeco.api.dto.response.InconsistencyResponse;
 import com.itson.profeco.model.Inconsistency;
 import com.itson.profeco.model.StoreProduct;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = { CustomerMapper.class, StoreProductMapper.class })
 public interface InconsistencyMapper {
  
     @Mapping(target = "id", ignore = true)
@@ -27,6 +27,8 @@ public interface InconsistencyMapper {
     @Mapping(target = "actualPrice", source = "actualPrice")
     @Mapping(target = "dateTime", expression = "java(inconsistency.getDateTime() != null ? inconsistency.getDateTime().toString() : null)")
     @Mapping(target = "status", source = "status.name")
+    @Mapping(target = "customer", source = "customer")
+    @Mapping(target = "storeProduct", source = "storeProduct")
     InconsistencyResponse toResponse(Inconsistency inconsistency);
 
     default StoreProduct mapStoreProductFromId(UUID storeProductId) {

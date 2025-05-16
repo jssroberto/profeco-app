@@ -22,7 +22,9 @@ import { StoreAdminProvider } from "./context/StoreAdminContext";
 import { CustomerProvider } from "./context/CustomerContext";
 import { RoleProtectedRoute } from "./pages/auth/RoleProtectedRoute";
 import { ProfecoAdminProvider } from "./context/ProfecoAdminContext";
+
 import ProfecoDashboard from "./pages/profecoAdmins/ProfecoDashboard";
+import Reportes from "./pages/profecoAdmins/Reportes";
 import AdminPrecios from "./pages/storeAdmins/AdminPrecios";
 
 function App() {
@@ -92,6 +94,7 @@ function App() {
                   <Outlet />
                 </ProfecoAdminProvider>
               }>
+                <Route path="/reportes" element={<Reportes />} />
                 <Route path="/admin-dashboard" element={<ProfecoDashboard />} />
               </Route>
             </Route>

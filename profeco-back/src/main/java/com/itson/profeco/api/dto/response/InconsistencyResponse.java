@@ -22,4 +22,8 @@ public class InconsistencyResponse {
 
     private String status;
 
+    private CustomerResponse customer;
+    
+    private StoreProductResponse storeProduct;
+
 }
