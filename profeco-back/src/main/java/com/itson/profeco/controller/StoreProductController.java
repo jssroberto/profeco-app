@@ -3,6 +3,9 @@ package com.itson.profeco.controller;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+
+import com.itson.profeco.api.dto.response.StoreOfferResponse;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -216,5 +219,7 @@ public class StoreProductController {
         storeProductService.deleteStoreProduct(id);
         return ResponseEntity.noContent().build();
     }
+
+
 
 }

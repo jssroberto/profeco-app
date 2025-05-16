@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import com.itson.profeco.api.dto.response.StoreProductResponse;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -145,6 +147,25 @@ public class StoreProductOfferController {
     public ResponseEntity<StoreOfferResponse> removeOffer(
             @Parameter(description = "ID of the store product from which to remove the offer") @PathVariable UUID storeProductId) {
         return ResponseEntity.ok(storeProductService.removeOffer(storeProductId));
+    }
+
+    @Operation(summary = "Find all products by store ID",
+            description = "Retrieves all products (with or without offers) for a specific store.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Successfully retrieved all products for the store",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = StoreProductResponse.class)))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403",
+                    description = "Forbidden - User does not have required role"),
+            @ApiResponse(responseCode = "404", description = "Store not found (if service layer adds this check)")
+    })
+    @GetMapping("/store/{storeId}/all-products") // Nueva ruta
+    public ResponseEntity<List<StoreOfferResponse>> getAllStoreProductsByStoreId(
+            @Parameter(description = "ID of the store to retrieve all products from") @PathVariable UUID storeId) {
+        List<StoreOfferResponse> products = storeProductService.getAllStoreProductsByStoreId(storeId);
+        return ResponseEntity.ok(products);
     }
 
 }

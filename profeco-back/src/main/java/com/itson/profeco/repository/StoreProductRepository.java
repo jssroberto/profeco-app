@@ -62,4 +62,7 @@ public interface StoreProductRepository extends JpaRepository<StoreProduct, UUID
     List<StoreProduct> findCurrentProductOffers(@Param("productId") UUID productId,
             @Param("currentDate") LocalDate currentDate);
 
+    List<StoreProduct> findByStore_IdAndOfferPriceIsNotNull(UUID storeId);
+
+
 }

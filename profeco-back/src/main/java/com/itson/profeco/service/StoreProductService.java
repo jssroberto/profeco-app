@@ -281,6 +281,16 @@ public class StoreProductService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<StoreOfferResponse> getAllStoreProductsByStoreId(UUID storeId) {
+        List<StoreProduct> storeProducts = storeProductRepository.findByStore_IdAndOfferPriceIsNotNull(storeId);
+        return storeProducts.stream()
+                .map(storeProductMapper::entityToOfferResponse)
+                .collect(Collectors.toList());
+    }
+
+
+
     private void validateOfferDates(LocalDate startDate, LocalDate endDate) {
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Offer start date and end date cannot be null.");
