@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import BusinessHeader from "../../components/negocios/BusinessHeader";
@@ -78,9 +78,15 @@ const Negociosinfo = () => {
                 },
               }
             );
+            const storeProductResponse = await axios.get(
+              `http://localhost:8080/api/v1/store-products/by-store/${id}/product/${sp.productId}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            console.log(storeProductResponse.data);
             return {
               id: sp.productId,
               name: product.name || "Producto sin nombre",
+              url: "",
               image: product.imageUrl
                 ? product.imageUrl.startsWith("http")
                   ? product.imageUrl
@@ -93,7 +99,6 @@ const Negociosinfo = () => {
           }
         })
       );
-
       setProducts(productsWithInfo.filter(Boolean));
 
       // carga de productos CON OFERTA

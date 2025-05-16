@@ -36,6 +36,7 @@ const ProductInfo = () => {
           );
           console.log(otherProductsResponse);
           setProduct({
+            id: productResponse.data.id,
             name: productResponse.data.name,
             imageUrl: productResponse.data.imageUrl.startsWith("http")
               ? productResponse.data.imageUrl
@@ -85,7 +86,7 @@ const ProductInfo = () => {
 
           <div className="space-y-2">
             <Button>Agregar a WishList</Button>
-            <Link to={`/productos/123/reportar`}>
+            <Link to={`/productos/${product?.id}/reportar`}>
               <Button variant="outline" className="text-red-500">
                 Reportar inconsistencia
               </Button>

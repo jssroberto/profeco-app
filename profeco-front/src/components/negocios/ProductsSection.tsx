@@ -22,7 +22,7 @@ const ProductsSection = ({ products }: ProductsSectionProps) => {
           {products.map((product) => (
             <Link
               key={product.id}
-              to={`/productos/${product.id}`}
+              to={`/productos/${product?.id}`}
               className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
             >
               <img
