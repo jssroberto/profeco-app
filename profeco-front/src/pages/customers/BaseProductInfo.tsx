@@ -11,6 +11,9 @@ const BaseProductInfo = () => {
   const [product, setProduct] = useState<any>(null);
   const [storeProducts, setStoreProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [addSuccess, setAddSuccess] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProductAndStores = async () => {
@@ -23,13 +26,11 @@ const BaseProductInfo = () => {
         );
         setProduct(productRes.data);
 
-        // Get all store-products for this product name
         const storeProductsRes = await axios.get(
           `http://localhost:8080/api/v1/store-products/by-product-name?name=${encodeURIComponent(productRes.data.name)}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // For each store-product, get the store info
         const storeProductsWithStore = await Promise.all(
           storeProductsRes.data.map(async (sp: any) => {
             const storeRes = await axios.get(
@@ -55,6 +56,25 @@ const BaseProductInfo = () => {
     fetchProductAndStores();
   }, [id, token]);
 
+  const handleAddToShoppingList = async () => {
+    if (!product?.id) return;
+    setAdding(true);
+    setAddError(null);
+    try {
+      await axios.post(
+        `http://localhost:8080/api/v1/preferences/shopping-list/${product.id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAddSuccess(true);
+      setTimeout(() => setAddSuccess(false), 2000);
+    } catch (e) {
+      setAddError("No se pudo agregar a la lista.");
+    } finally {
+      setAdding(false);
+    }
+  };
+
   if (loading) return <div className="p-8">Cargando...</div>;
   if (!product) return <div className="p-8">Producto no encontrado</div>;
 
@@ -76,6 +96,21 @@ const BaseProductInfo = () => {
             <span className="mr-4">Categoría: {product.categoryName}</span>
             <span>Marca: {product.brandName}</span>
           </div>
+          <div>
+            <Button onClick={handleAddToShoppingList} disabled={adding}>
+              {adding ? "Agregando..." : "Agregar a Shopping List"}
+            </Button>
+            {addSuccess && (
+              <div className="text-green-600 text-sm font-semibold mt-2">
+                ¡Agregado!
+              </div>
+            )}
+            {addError && (
+              <div className="text-red-600 text-sm font-semibold mt-2">
+                {addError}
+              </div>
+            )}
+          </div>
           <div className="mt-8">
             <h2 className="text-xl font-semibold text-[#9C2759] mb-4">
               Disponible en supermercados
@@ -85,14 +120,23 @@ const BaseProductInfo = () => {
                 <div>No disponible en ningún supermercado actualmente.</div>
               )}
               {storeProducts.map((sp, idx) => (
-                <Card key={sp.storeProductId} className="p-4 flex justify-between items-center">
+                <Card
+                  key={sp.storeProductId}
+                  className="p-4 flex justify-between items-center"
+                >
                   <div>
                     <div className="font-medium">{sp.storeName}</div>
-                    <div className="text-sm text-gray-500">ID tienda: {sp.storeId}</div>
+                    <div className="text-sm text-gray-500">
+                      ID tienda: {sp.storeId}
+                    </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="font-bold text-lg">${sp.price.toFixed(2)}</span>
-                    <Link to={`/negocios/${sp.storeId}/productos/${sp.storeProductId}`}>
+                    <span className="font-bold text-lg">
+                      ${sp.price.toFixed(2)}
+                    </span>
+                    <Link
+                      to={`/negocios/${sp.storeId}/productos/${sp.storeProductId}`}
+                    >
                       <Button variant="outline">Ver producto en tienda</Button>
                     </Link>
                   </div>
