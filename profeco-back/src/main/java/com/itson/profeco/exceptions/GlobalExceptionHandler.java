@@ -76,4 +76,10 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(e.getMessage());
     }
 
+
+    @ExceptionHandler(StoreAlreadyFavoriteException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleStoreAlreadyFavoriteException(StoreAlreadyFavoriteException e) {
+        return new ErrorResponse(e.getMessage());
+    }
 }

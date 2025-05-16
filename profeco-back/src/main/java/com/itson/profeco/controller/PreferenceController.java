@@ -19,14 +19,12 @@ import com.itson.profeco.api.dto.request.ProductSearchRequest;
 import com.itson.profeco.api.dto.response.FavoriteStoresResponse;
 import com.itson.profeco.api.dto.response.ProductSearchResponse;
 import com.itson.profeco.api.dto.response.ShoppingListResponse;
-import com.itson.profeco.exceptions.ResourceNotFoundException;
 import com.itson.profeco.security.CustomUserDetails;
 import com.itson.profeco.service.PreferenceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -47,9 +45,8 @@ public class PreferenceController {
     @PostMapping("/favorite-stores/{storeId}")
     public ResponseEntity<FavoriteStoresResponse> addFavoriteStore(
             @Parameter(description = "ID of the store to add") @PathVariable UUID storeId) {
-        return preferenceService.addFavoriteStore(storeId).map(ResponseEntity::ok)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Store not found with ID: " + storeId));
+        FavoriteStoresResponse response = preferenceService.addFavoriteStore(storeId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Remove favorite store",
@@ -58,10 +55,8 @@ public class PreferenceController {
     @DeleteMapping("/favorite-stores/{storeId}")
     public ResponseEntity<FavoriteStoresResponse> removeFavoriteStore(
             @Parameter(description = "ID of the store to remove") @PathVariable UUID storeId) {
-
-        return preferenceService.removeFavoriteStore(storeId).map(ResponseEntity::ok)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Store not found with ID: " + storeId));
+        FavoriteStoresResponse response = preferenceService.removeFavoriteStore(storeId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get searched products",
@@ -89,9 +84,8 @@ public class PreferenceController {
     @PostMapping("/shopping-list/{productId}")
     public ResponseEntity<ShoppingListResponse> addProductToShoppingList(
             @Parameter(description = "ID of the product to add") @PathVariable UUID productId) {
-        return preferenceService.addProductToShoppingList(productId).map(ResponseEntity::ok)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Product not found with ID: " + productId));
+        ShoppingListResponse response = preferenceService.addProductToShoppingList(productId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Remove product from shopping list",
@@ -101,9 +95,8 @@ public class PreferenceController {
     public ResponseEntity<ShoppingListResponse> removeProductFromShoppingList(
             @AuthenticationPrincipal CustomUserDetails currentUser, // Injected authenticated user
             @Parameter(description = "ID of the product to remove") @PathVariable UUID productId) {
-        return preferenceService.removeProductFromShoppingList(productId).map(ResponseEntity::ok)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Product not found with ID: " + productId));
+        ShoppingListResponse response = preferenceService.removeProductFromShoppingList(productId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get shopping list",
