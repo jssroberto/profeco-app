@@ -24,8 +24,11 @@ const Negociosinfo = () => {
       try {
         //  carga de datos del super
         const { data } = await axios.get(
-          `http://localhost:8080/api/v1/stores/${id}`
-        );
+          `http://localhost:8080/api/v1/stores/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
         let rating = 0;
         try {
