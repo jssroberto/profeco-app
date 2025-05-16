@@ -1,6 +1,7 @@
 package com.itson.profeco.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserNotification {
 
     @Id
@@ -22,7 +24,7 @@ public class UserNotification {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user; // El usuario al que va dirigida la notificación
+    private UserEntity user;
 
     @Column(nullable = false, length = 500)
     private String message;
@@ -35,16 +37,9 @@ public class UserNotification {
     private LocalDateTime createdAt;
 
     @Column(length = 100)
-    private String type; // Ej. "NUEVA_OFERTA", "MENSAJE_ADMIN"
+    private String type;
 
     @Column(length = 500)
-    private String link; // Opcional: URL a la que dirigir si se hace clic
+    private String link;
 
-    public UserNotification(UserEntity user, String message, String type, String link) {
-        this.user = user;
-        this.message = message;
-        this.type = type;
-        this.link = link;
-        this.isRead = false; // Por defecto no leída
-    }
 }

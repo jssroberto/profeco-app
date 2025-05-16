@@ -1,32 +1,22 @@
 package com.itson.profeco.repository;
 
 import com.itson.profeco.model.UserNotification;
-import com.itson.profeco.model.UserEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.UUID;
 
-@Repository
 public interface UserNotificationRepository extends JpaRepository<UserNotification, UUID> {
 
+    List<UserNotification> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
-    Page<UserNotification> findByUserOrderByCreatedAtDesc(UserEntity user, Pageable pageable);
+    List<UserNotification> findByUserIdAndIsReadFalseOrderByCreatedAtDesc(UUID userId);
 
-
-    List<UserNotification> findByUserAndIsReadFalseOrderByCreatedAtDesc(UserEntity user);
-
-
-    long countByUserAndIsReadFalse(UserEntity user);
-
+    long countByUserIdAndIsReadFalse(UUID userId);
 
     @Modifying
-    @Query("UPDATE UserNotification un SET un.isRead = true WHERE un.user = :user AND un.isRead = false")
-    int markAllAsReadForUser(@Param("user") UserEntity user);
+    @Query("UPDATE UserNotification n SET n.isRead = true WHERE n.user.id = :userId")
+    void markAllAsReadForUser(@Param("userId") UUID userId);
 }

@@ -9,54 +9,59 @@ import com.itson.profeco.repository.UserNotificationRepository;
 import com.itson.profeco.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Pageable;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserNotificationService {
 
     private final UserNotificationRepository userNotificationRepository;
     private final UserRepository userRepository;
     private final UserNotificationMapper userNotificationMapper;
 
-    @Transactional
     public void createNotification(UUID userId, String message, String type, String link) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-        UserNotification notification = new UserNotification(user, message, type, link);
+        UserNotification notification = new UserNotification();
+
+        notification.setUser(user);
+        notification.setMessage(message);
+        notification.setType(type);
+        notification.setLink(link);
+        notification.setRead(false);
+
         userNotificationRepository.save(notification);
     }
 
-    @Transactional(readOnly = true)
-    public Page<NotificationResponse> getNotificationsForUser(UUID userId, Pageable pageable) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-
-        Page<UserNotification> userNotificationsPage =
-                userNotificationRepository.findByUserOrderByCreatedAtDesc(user, pageable);
-        return userNotificationsPage.map(userNotificationMapper::toResponse);
+    public List<NotificationResponse> getAllNotificationsForUser(UUID userId) {
+        return userNotificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(userNotificationMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public UnreadNotificationsCountResponse getUnreadNotificationsCount(UUID userId) { // Acepta userId
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-        long count = userNotificationRepository.countByUserAndIsReadFalse(user);
+    public List<NotificationResponse> getActiveNotificationsForUser(UUID userId) {
+        return userNotificationRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(userNotificationMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    public UnreadNotificationsCountResponse getUnreadNotificationsCount(UUID userId) {
+        long count = userNotificationRepository.countByUserIdAndIsReadFalse(userId);
         return new UnreadNotificationsCountResponse(count);
     }
 
-    @Transactional
     public NotificationResponse markAsRead(UUID notificationId, UUID userId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
         UserNotification notification = userNotificationRepository.findById(notificationId)
                 .orElseThrow(() -> new EntityNotFoundException("Notification not found: " + notificationId));
 
-        if (!notification.getUser().getId().equals(user.getId())) {
+        if (!notification.getUser().getId().equals(userId)) {
             throw new SecurityException("User not authorized to mark this notification as read.");
         }
 
@@ -64,13 +69,11 @@ public class UserNotificationService {
             notification.setRead(true);
             userNotificationRepository.save(notification);
         }
+
         return userNotificationMapper.toResponse(notification);
     }
 
-    @Transactional
     public void markAllAsRead(UUID userId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-        userNotificationRepository.markAllAsReadForUser(user);
+        userNotificationRepository.markAllAsReadForUser(userId);
     }
 }
