@@ -11,6 +11,7 @@ const ProductInfo = () => {
   const { id } = useParams();
   const { token } = useAuth();
   const [product, setProduct] = useState<any>(null);
+  const [otherProducts, setOtherProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -34,7 +35,19 @@ const ProductInfo = () => {
             `http://localhost:8080/api/v1/store-products/by-product-name?name=${productResponse.data.name}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          console.log(otherProductsResponse);
+          const otherProductsWithStores = await Promise.all(
+            otherProductsResponse.data.map(async (element: any) => {
+              const storeRes = await axios.get(
+                `http://localhost:8080/api/v1/stores/${element.storeId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              return {
+                price: element.price,
+                storeName: storeRes.data.name,
+                storeId: element.storeId
+              };
+            })
+          );
           setProduct({
             id: productResponse.data.id,
             name: productResponse.data.name,
@@ -44,6 +57,7 @@ const ProductInfo = () => {
             price: productStoreResponse.data.price,
             storeName: storeResponse.data.name
           });
+          setOtherProducts(otherProductsWithStores);
         }
       } catch (e) {
         console.error(e);
@@ -98,29 +112,22 @@ const ProductInfo = () => {
               Comparar precios con otros supermercados
             </h2>
             <div className="grid gap-4">
-              <Card className="p-4">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Walmart Súper</span>
-                  <div>
-                    <span className="font-bold">$50.00</span>
-                    <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                      OFERTA
-                    </span>
+              {otherProducts.map((item, index) => (
+                <Card key={`${item.storeId}-${index}`} className="p-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{item.storeName}</span>
+                    <div>
+                      <span className="font-bold">${item.price.toFixed(2)}</span>
+                      {/* Puedes agregar lógica para mostrar ofertas si es necesario */}
+                      {item.price < product?.price && (
+                        <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                          OFERTA
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Card>
-              <Card className="p-4">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Bodega Aurrera</span>
-                  <span className="font-bold">$65.50</span>
-                </div>
-              </Card>
-              <Card className="p-4">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Soriana</span>
-                  <span className="font-bold">$55</span>
-                </div>
-              </Card>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
