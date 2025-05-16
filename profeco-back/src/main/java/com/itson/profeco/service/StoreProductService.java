@@ -227,7 +227,7 @@ public class StoreProductService {
 
     @Transactional(readOnly = true)
     public List<StoreProductResponse> getProductsByStoreId(UUID storeId) {
-        return storeProductRepository.findByStore_IdAndOfferPriceIsNull(storeId).stream()
+        return storeProductRepository.findByStore_Id(storeId).stream()
                 .map(storeProductMapper::entityToProductResponse).collect(Collectors.toList());
     }
 

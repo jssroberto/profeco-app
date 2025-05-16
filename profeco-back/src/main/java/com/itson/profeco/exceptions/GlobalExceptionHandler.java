@@ -95,10 +95,10 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleRuntimeException(RuntimeException e) {
-        return new ErrorResponse("An unexpected error occurred: " + e.getMessage());
-    }
+    // @ExceptionHandler(RuntimeException.class)
+    // @ResponseStatus(HttpStatus.BAD_REQUEST)
+    // public ErrorResponse handleRuntimeException(RuntimeException e) {
+    //     return new ErrorResponse("An unexpected error occurred: " + e.getMessage());
+    // }
 
 }

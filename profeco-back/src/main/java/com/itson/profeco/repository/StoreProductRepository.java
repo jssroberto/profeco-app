@@ -16,6 +16,8 @@ import com.itson.profeco.model.StoreProduct;
 
 public interface StoreProductRepository extends JpaRepository<StoreProduct, UUID> {
 
+    List<StoreProduct> findByStore_Id(UUID storeId);
+
     List<StoreProduct> findByStore_IdAndOfferPriceIsNull(UUID storeId);
 
     List<StoreProduct> findByStore_NameAndOfferPriceIsNull(String storeName);

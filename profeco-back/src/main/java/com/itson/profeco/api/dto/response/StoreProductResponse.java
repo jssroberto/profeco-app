@@ -17,6 +17,12 @@ public class StoreProductResponse {
 
     private BigDecimal price;
 
+    private BigDecimal offerPrice;
+
+    private String offerStartDate;
+
+    private String offerEndDate;
+
     private UUID storeId;
 
     private UUID productId;

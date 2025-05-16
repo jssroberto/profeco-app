@@ -1,10 +1,19 @@
-// pages/AdminInconsistencias.tsx
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import api from "../../api/axiosConfig";
 import { useAuth } from "../../context/AuthContext";
 
+interface Inconsistency {
+  id: string;
+  publishedPrice: number;
+  actualPrice: number;
+  dateTime: string;
+  status: string;
+  productName: string;
+}
+
 export const AdminInconsistencias = () => {
-  const [inconsistencies, setInconsistencies] = useState<any[]>([]);
+  const [inconsistencies, setInconsistencies] = useState<Inconsistency[]>([]);
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
 
@@ -12,20 +21,23 @@ export const AdminInconsistencias = () => {
     const fetchInconsistencies = async () => {
       setLoading(true);
       try {
-        const data = await fetch(
-          "http://localhost:8080/api/v1/store-admin/inconsistencies",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        ).then((res) => res.json());
-        setInconsistencies(data);
-      } catch {
+        const response = await api.get<Inconsistency[]>(
+          "/store-admin/inconsistencies",
+        );
+        setInconsistencies(response.data);
+      } catch (error) {
+        console.error("Error fetching inconsistencies:", error);
         setInconsistencies([]);
       } finally {
         setLoading(false);
       }
     };
-    if (token) fetchInconsistencies();
+    if (token) {
+      fetchInconsistencies();
+    } else {
+      setLoading(false);
+      setInconsistencies([]);
+    }
   }, [token]);
 
   return (
@@ -40,10 +52,7 @@ export const AdminInconsistencias = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tipo
+                Producto
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Precio Publicado
@@ -62,36 +71,33 @@ export const AdminInconsistencias = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-gray-400">
+                <td colSpan={5} className="text-center py-8 text-gray-400">
                   Cargando...
                 </td>
               </tr>
             ) : inconsistencies.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-gray-400">
+                <td colSpan={5} className="text-center py-8 text-gray-400">
                   No hay inconsistencias reportadas.
                 </td>
               </tr>
             ) : (
               inconsistencies.map((item) => (
                 <tr key={item.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.id}
+                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-700">
+                    {item.productName}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    Precio Incorrecto
+                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-700">
+                    ${item.publishedPrice.toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${item.publishedPrice}
+                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-700">
+                    ${item.actualPrice.toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${item.actualPrice}
+                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-700">
+                    {new Date(item.dateTime).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.dateTime}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.status}
+                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-700">
+                    {item.status === 'OPEN' ? 'Abierto' : item.status === 'CLOSED' ? 'Cerrado' : item.status}
                   </td>
                 </tr>
               ))

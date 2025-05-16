@@ -72,7 +72,7 @@ public class StoreProductController {
         return ResponseEntity.ok(storeProductService.getStoreProductById(id));
     }
 
-    @Operation(summary = "Find store products without offers by store ID",
+    @Operation(summary = "Find store products by store ID independent of offers",
             description = "Retrieves products for a store that don't have an offer price.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
