@@ -49,7 +49,7 @@ public class StoreController {
     @Operation(summary = "Get all stores", description = "Returns a list of all stores.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "List of stores returned successfully") })
     @GetMapping
-   //@PreAuthorize("hasAnyRole(@environment.getProperty('role.customer'), @environment.getProperty('role.store-admin'))")
+   @PreAuthorize("hasAnyRole(@environment.getProperty('role.customer'), @environment.getProperty('role.store-admin'))")
     public ResponseEntity<List<StoreResponse>> getAllStores() {
         List<StoreResponse> responses = storeService.getAllStores();
         return ResponseEntity.ok(responses);

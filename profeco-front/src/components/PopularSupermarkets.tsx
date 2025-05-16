@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import SupermarketCard from "./SupermarketCard";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 interface Supermarket {
   id: string;
@@ -15,11 +16,14 @@ interface Supermarket {
 const PopularSupermarkets = () => {
   const [supermarkets, setSupermarkets] = useState<Supermarket[]>([]);
   const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
 
   useEffect(() => {
     const fetchSupermarkets = async () => {
       try {
-        const { data } = await axios.get("http://localhost:8080/api/v1/stores");
+        const { data } = await axios.get("http://localhost:8080/api/v1/stores", {headers: {
+              Authorization: `Bearer ${token}`,
+            }});
         const marketsWithRatings = await Promise.all(
           data.map(async (store: any) => {
             let rating = 0;

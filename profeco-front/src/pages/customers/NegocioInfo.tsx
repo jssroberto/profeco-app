@@ -6,6 +6,7 @@ import OffersSection from "../../components/negocios/OfferSection";
 import ProductsSection from "../../components/negocios/ProductsSection";
 import ReviewSection from "../../components/negocios/ReviewSection";
 import { useAuth } from "../../context/AuthContext";
+import StoreWish from "../../components/negocios/StoreWish";
 
 const Negociosinfo = () => {
   const { id } = useParams();
@@ -191,6 +192,7 @@ const Negociosinfo = () => {
       />
       <OffersSection offers={offers} />
       <ProductsSection products={products} />
+      <StoreWish storeId={id || ""} />
       <ReviewSection 
         reviews={reviews} 
         storeId={id || ""}
