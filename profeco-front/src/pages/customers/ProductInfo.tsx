@@ -2,8 +2,9 @@ import { Heart } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import axios from "axios";
 
 const ProductInfo = () => {
 
@@ -12,9 +13,25 @@ const ProductInfo = () => {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-
-
-
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/v1/store-products/e5fb1d68-4352-417d-b154-65cb2d3e0001`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        setProduct(response.data);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    fetchData();
+  }, []);
+  console.log(product);
   return (
     <div className="max-w-6xl mx-auto p-4 mt-24">
       <div className="grid md:grid-cols-2 gap-8">
@@ -23,7 +40,7 @@ const ProductInfo = () => {
             <Heart className="w-6 h-6 text-gray-600" />
           </button>
           <img
-            src="https://www.superaki.mx/cdn/shop/files/7501030452553_230224_f1c3e040-4e1e-42b1-b171-cba003079b55.jpg?v=1709054843"
+            src={product?.imageUrl}
             alt="Pan Blanco Artesanal Bimbo"
             className="w-full object-contain"
           />
@@ -35,7 +52,7 @@ const ProductInfo = () => {
               Oferta
             </div>
             <h1 className="text-2xl font-semibold mt-2">
-              Pan Blanco Artesanal Bimbo
+              {product?.name}
             </h1>
             <div className="flex items-baseline gap-2 mt-4">
               <span className="text-4xl font-bold">$50</span>
