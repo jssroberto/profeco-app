@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriBuilder;
 
 import com.itson.profeco.api.dto.request.UpdateInconsistencyStatusRequest;
@@ -64,15 +65,14 @@ public class ProfecoAdminInconsistencyController {
     @PatchMapping("/{inconsistencyId}/status")
     @Operation(summary = "Update the status of an inconsistency")
     public ResponseEntity<InconsistencyResponse> updateInconsistencyStatus(
-            @PathVariable UUID inconsistencyId,
-            @Valid @RequestBody UpdateInconsistencyStatusRequest statusRequest, UriBuilder uriBuilder) {
+        @PathVariable UUID inconsistencyId,
+        @Valid @RequestBody UpdateInconsistencyStatusRequest statusRequest) {
         InconsistencyResponse inconsistencyResponse = inconsistencyService.updateInconsistencyStatus(inconsistencyId,
                 statusRequest);
-
-        URI resourceUri = uriBuilder
-                .path("/api/v1/profeco-admin/inconsistencies/{id}")
-                .build(inconsistencyId);
-
+        URI resourceUri = ServletUriComponentsBuilder.fromCurrentRequest()
+                .replacePath("/api/v1/profeco-admin/inconsistencies/{id}")
+                .buildAndExpand(inconsistencyId)
+                .toUri();
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_LOCATION, resourceUri.toString())
                 .body(inconsistencyResponse);

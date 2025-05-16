@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlarmClock, AlertTriangle } from 'lucide-react';
+import { FileWarning } from 'lucide-react';
 import { useProfecoAdmin } from '../../context/ProfecoAdminContext';
 
 const ProfecoDashboard: React.FC = () => {
@@ -10,9 +10,9 @@ const ProfecoDashboard: React.FC = () => {
 
     const cards = [
     {
-      icon: <AlarmClock className="w-6 h-6" />,
+      icon: <FileWarning className="w-6 h-6" />,
       title: "Mirar reportes de Inconsistencias",
-      path: "/inconsistencias",
+      path: "/reportes",
     }
   ];
 

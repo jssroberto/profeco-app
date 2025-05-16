@@ -58,7 +58,7 @@ public class ProductController {
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Product found"),
             @ApiResponse(responseCode = "404", description = "Product not found") })
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole(@environment.getProperty('role.store-admin')) or hasRole(@environment.getProperty('role.customer'))")
+    @PreAuthorize("hasRole(@environment.getProperty('role.store-admin')) or hasRole(@environment.getProperty('role.customer')) or hasRole(@environment.getProperty('role.profeco-admin'))")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable UUID id) {
         ProductResponse response = productService.getProductById(id);
         return ResponseEntity.ok(response);
