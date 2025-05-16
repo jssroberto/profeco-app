@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import SearchBar from "../../components/Searchbar";
 import SearchProducts from "../../components/SearchProducts";
 
 
 const Productos: React.FC = () => {
+
+  const [query, setQuery] = useState("");
+
   return (
     <div className="pt-26 px-4 sm:px-6 lg:px-8 min-h-screen bg-white">
       <div className="max-w-7xl mx-auto">
@@ -11,11 +14,12 @@ const Productos: React.FC = () => {
         <SearchBar
           context="productos"
           placeholder="Buscar productos..."
+          onQueryChange={setQuery}
         />
 
         {/* Section #1: idk */}
         <div className="w-full max-w-3xl">
-          <SearchProducts />
+          <SearchProducts query={query} />
         </div>
       </div>
     </div>

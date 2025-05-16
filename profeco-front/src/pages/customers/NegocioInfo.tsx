@@ -168,12 +168,13 @@ const Negociosinfo = () => {
       }));
       setReviews(reviewsWithInfo);
 
-      // const { data: favorites } = await axios.get(
-      //   "http://localhost:8080/api/v1/preferences/favorite-stores",
-      //   { headers: { Authorization: `Bearer ${token}` } }
-      // );
-  
-      // setIsFavorite(Array.isArray(favorites) && favorites.some((fav: any) => fav.id === id));
+        // obtener si la tiene como favorita
+       const { data: favorites } = await axios.get(
+         "http://localhost:8080/api/v1/preferences/favorite-stores",
+         { headers: { Authorization: `Bearer ${token}` } }
+       );
+       
+      setIsFavorite(Array.isArray(favorites) && favorites.some((fav: any) => fav.id === id));
 
     } catch (error) {
       setBusinessData(null);

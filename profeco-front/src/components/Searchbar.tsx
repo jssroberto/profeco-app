@@ -10,15 +10,22 @@ interface SearchBarProps {
   context?: SearchContext;
   placeholder?: string;
   className?: string;
+  onQueryChange?: (q: string) => void;
 }
 
 const SearchBar = ({
   context = "global",
   placeholder = "Buscar productos, supermercados y más...",
-  className = ""
+  className = "",
+  onQueryChange,
 }: SearchBarProps) => {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+    if (onQueryChange) onQueryChange(e.target.value);
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -45,17 +52,11 @@ const SearchBar = ({
       className={`w-full bg-[#f6f6f6] rounded-2xl shadow-sm flex items-center px-6 py-3 gap-4 max-w-3xl ${className}`}
       aria-label="Buscador"
     >
-      <Search
-        size={28}
-        color={burgundy}
-        strokeWidth={2.5}
-        className="flex-shrink-0"
-        aria-hidden="true"
-      />
+      <Search size={28} color={burgundy} strokeWidth={2.5} className="flex-shrink-0" aria-hidden="true" />
       <input
         type="text"
         value={query}
-        onChange={e => setQuery(e.target.value)}
+        onChange={handleInputChange}
         placeholder={placeholder}
         className="flex-1 bg-transparent outline-none text-lg text-zinc-700 placeholder:text-zinc-500"
         aria-label={placeholder}
