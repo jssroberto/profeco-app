@@ -82,11 +82,10 @@ const Negociosinfo = () => {
               `http://localhost:8080/api/v1/store-products/by-store/${id}/product/${sp.productId}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
-            console.log(storeProductResponse.data);
             return {
               id: sp.productId,
               name: product.name || "Producto sin nombre",
-              url: "",
+              storeProductId: storeProductResponse.data.id,
               image: product.imageUrl
                 ? product.imageUrl.startsWith("http")
                   ? product.imageUrl
@@ -169,12 +168,12 @@ const Negociosinfo = () => {
       }));
       setReviews(reviewsWithInfo);
 
-      const { data: favorites } = await axios.get(
-        "http://localhost:8080/api/v1/preferences/favorite-stores",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // const { data: favorites } = await axios.get(
+      //   "http://localhost:8080/api/v1/preferences/favorite-stores",
+      //   { headers: { Authorization: `Bearer ${token}` } }
+      // );
   
-      setIsFavorite(Array.isArray(favorites) && favorites.some((fav: any) => fav.id === id));
+      // setIsFavorite(Array.isArray(favorites) && favorites.some((fav: any) => fav.id === id));
 
     } catch (error) {
       setBusinessData(null);
