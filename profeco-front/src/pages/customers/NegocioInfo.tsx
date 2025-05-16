@@ -57,7 +57,7 @@ const Negociosinfo = () => {
         description: `Ubicación: ${data.location}`,
       });
 
-      // cargqa de productos SIN OFERTA
+      // carga de productos SIN OFERTA
       const { data: storeProducts } = await axios.get(
         `http://localhost:8080/api/v1/store-products/by-store/${id}`,
         {
@@ -78,14 +78,11 @@ const Negociosinfo = () => {
                 },
               }
             );
-            const storeProductResponse = await axios.get(
-              `http://localhost:8080/api/v1/store-products/by-store/${id}/product/${sp.productId}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
+            
             return {
               id: sp.productId,
               name: product.name || "Producto sin nombre",
-              storeProductId: storeProductResponse.data.id,
+              storeProductId: sp.id,
               image: product.imageUrl
                 ? product.imageUrl.startsWith("http")
                   ? product.imageUrl
@@ -168,14 +165,18 @@ const Negociosinfo = () => {
       }));
       setReviews(reviewsWithInfo);
 
-        // obtener si la tiene como favorita
-       const { data: favorites } = await axios.get(
-         "http://localhost:8080/api/v1/preferences/favorite-stores",
-         { headers: { Authorization: `Bearer ${token}` } }
-       );
-       
-      setIsFavorite(Array.isArray(favorites) && favorites.some((fav: any) => fav.id === id));
+      const { data: favorites } = await axios.get(
+        "http://localhost:8080/api/v1/preferences/favorite-stores",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
+      const favoriteStoreId = favorites.favoriteStoreIds[0];
+
+      if(favoriteStoreId == id) {
+        setIsFavorite(true);
+      } else {
+        setIsFavorite(false);
+      }
     } catch (error) {
       setBusinessData(null);
     } finally {
@@ -185,24 +186,26 @@ const Negociosinfo = () => {
 
   // metodo para marcar store como fav
   const handleToggleFavorite = async () => {
-    try {
-      if (isFavorite) {
-        await axios.delete(
-          `http://localhost:8080/api/v1/preferences/favorite-stores/${id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setIsFavorite(false);
-      } else {
-        await axios.post(
-          `http://localhost:8080/api/v1/preferences/favorite-stores/${id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setIsFavorite(true);
-      }
-    } catch (e) {
-        console.log(e);
+  try {
+    if (isFavorite) {
+      await axios.delete(
+        `http://localhost:8080/api/v1/preferences/favorite-stores/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setIsFavorite(false);
+    } else {
+      await axios.post(
+        `http://localhost:8080/api/v1/preferences/favorite-stores/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setIsFavorite(true);
     }
-  };
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 
 
   useEffect(() => {

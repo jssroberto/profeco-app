@@ -291,7 +291,7 @@ const BaseProductInfo = () => {
                           {Math.round((1 - offer.offerPrice / offer.storeProduct.price) * 100)}% OFF
                         </p>
                          <Link to={`/negocios/${offer.storeProduct.storeId}/productos/${offer.storeProduct.id}`} className="mt-2 inline-block">
-                            <Button variant="link" size="sm">Ver en tienda</Button>
+                            <Button variant="default">Ver en tienda</Button>
                          </Link>
                       </div>
                     </div>
