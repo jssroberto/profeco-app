@@ -37,11 +37,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
         Collection<? extends GrantedAuthority> authorities = getAuthorities(userEntity.getRoles());
-
         if (authorities.isEmpty()) {
             throw new IllegalStateException("User '" + email + "' has no assigned roles.");
         }

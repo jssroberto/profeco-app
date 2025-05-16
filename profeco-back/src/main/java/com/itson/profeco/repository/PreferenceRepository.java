@@ -1,5 +1,6 @@
 package com.itson.profeco.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,6 @@ public interface PreferenceRepository extends JpaRepository<Preference, UUID> {
 
     @Query("SELECT p FROM Preference p JOIN p.customer c WHERE c.user.id = :userId")
     Optional<Preference> findByUserId(@Param("userId") UUID userId);
+
+    List<Preference> findByFavoriteStores_Id(UUID storeId);
 }
