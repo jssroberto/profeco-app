@@ -82,4 +82,23 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleStoreAlreadyFavoriteException(StoreAlreadyFavoriteException e) {
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleResourceNotFoundException(ResourceNotFoundException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler(OperationNotAllowedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleOperationNotAllowedException(OperationNotAllowedException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleRuntimeException(RuntimeException e) {
+        return new ErrorResponse("An unexpected error occurred: " + e.getMessage());
+    }
+
 }

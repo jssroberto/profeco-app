@@ -39,9 +39,6 @@ public class StoreProduct {
     private LocalDate offerEndDate;
 
     @ManyToOne
-    private Inconsistency inconsistency;
-
-    @ManyToOne
     private Store store;
 
     @ManyToOne

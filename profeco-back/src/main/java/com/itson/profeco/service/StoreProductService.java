@@ -58,7 +58,6 @@ public class StoreProductService {
         storeProduct.setOfferPrice(null);
         storeProduct.setOfferStartDate(null);
         storeProduct.setOfferEndDate(null);
-        storeProduct.setInconsistency(null);
 
         StoreProduct savedProduct = storeProductRepository.save(storeProduct);
         return storeProductMapper.entityToProductResponse(savedProduct);
@@ -186,7 +185,6 @@ public class StoreProductService {
         existingProduct.setOfferPrice(null);
         existingProduct.setOfferStartDate(null);
         existingProduct.setOfferEndDate(null);
-        existingProduct.setInconsistency(null);
         StoreProduct updatedProduct = storeProductRepository.save(existingProduct);
         return storeProductMapper.entityToOfferResponse(updatedProduct);
     }

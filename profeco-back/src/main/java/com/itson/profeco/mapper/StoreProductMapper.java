@@ -24,7 +24,6 @@ public interface StoreProductMapper {
 
 
     @Mapping(target = "storeProduct", source = "entity")
-    @Mapping(target = "inconsistency", source = "entity.inconsistency", qualifiedByName = "mapInconsistencyObjectToUuidList")
     StoreOfferResponse entityToOfferResponse(StoreProduct entity);
 
 
@@ -32,7 +31,6 @@ public interface StoreProductMapper {
     @Mapping(target = "offerPrice", ignore = true)
     @Mapping(target = "offerStartDate", ignore = true)
     @Mapping(target = "offerEndDate", ignore = true)
-    @Mapping(target = "inconsistency", ignore = true)
     @Mapping(target = "store", ignore = true)
     @Mapping(target = "product", ignore = true)
     StoreProduct productRequestToEntity(StoreProductRequest request);
@@ -41,7 +39,6 @@ public interface StoreProductMapper {
     @Mapping(target = "offerPrice", ignore = true)
     @Mapping(target = "offerStartDate", ignore = true)
     @Mapping(target = "offerEndDate", ignore = true)
-    @Mapping(target = "inconsistency", ignore = true)
     @Mapping(target = "store", ignore = true)
     @Mapping(target = "product", ignore = true)
     void updateEntityFromProductRequest(@MappingTarget StoreProduct entity, StoreProductRequest request);
@@ -51,7 +48,6 @@ public interface StoreProductMapper {
     @Mapping(target = "price", ignore = true)
     @Mapping(target = "store", ignore = true)
     @Mapping(target = "product", ignore = true)
-    @Mapping(target = "inconsistency", ignore = true)
     void updateOfferFieldsInStoreProduct(@MappingTarget StoreProduct entity, StoreOfferRequest request);
 
 

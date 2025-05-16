@@ -3,9 +3,6 @@ package com.itson.profeco.controller;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-
-import com.itson.profeco.api.dto.response.StoreOfferResponse;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -198,7 +195,7 @@ public class StoreProductController {
             @ApiResponse(responseCode = "404",
                     description = "Store product not found for the given product ID in the admin's store")})
     @PutMapping("/by-product")
-    @PreAuthorize("hasRole(@environment.getProperty('role.store_admin'))")
+    @PreAuthorize("hasRole(@environment.getProperty('role.store-admin'))")
     public ResponseEntity<StoreProductResponse> updateStoreProductByProductInCurrentStore(
             @Valid @RequestBody StoreProductRequest request) {
         return ResponseEntity
@@ -213,7 +210,7 @@ public class StoreProductController {
                     description = "Forbidden - User does not have STORE_ADMIN role"),
             @ApiResponse(responseCode = "404", description = "Store product not found")})
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole(@environment.getProperty('role.store_admin'))")
+    @PreAuthorize("hasRole(@environment.getProperty('role.store-admin'))")
     public ResponseEntity<Void> deleteStoreProduct(
             @Parameter(description = "ID of the store product to delete") @PathVariable UUID id) {
         storeProductService.deleteStoreProduct(id);
