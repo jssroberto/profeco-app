@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -37,13 +38,6 @@ import lombok.RequiredArgsConstructor;
 public class PreferenceController {
 
     private final PreferenceService preferenceService;
-
-    private UUID get(CustomUserDetails currentUser) {
-        if (currentUser == null) {
-            throw new IllegalStateException("User not authenticated");
-        }
-        return currentUser.getSpecificUserId();
-    }
 
     @Operation(summary = "Add favorite store",
             description = "Adds a store to the current customer's favorite stores list",
@@ -119,7 +113,7 @@ public class PreferenceController {
             tags = {"Product Searches"})
     @PostMapping("/product-searches")
     public ResponseEntity<ProductSearchResponse> trackProductSearch(
-            @RequestBody ProductSearchRequest request) {
+            @Valid @RequestBody ProductSearchRequest request) {
         return ResponseEntity.ok(preferenceService.addOrUpdateProductSearch(request));
     }
 

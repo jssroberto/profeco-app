@@ -18,6 +18,7 @@ import com.itson.profeco.service.InconsistencyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -41,7 +42,7 @@ public class CustomerInconsistencyController {
     @PostMapping
     @Operation(summary = "Report a new inconsistency")
     public ResponseEntity<InconsistencyResponse> saveInconsistency(
-            @RequestBody InconsistencyRequest request) {
+            @Valid @RequestBody InconsistencyRequest request) {
         InconsistencyResponse response = inconsistencyService.saveInconsistency(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
