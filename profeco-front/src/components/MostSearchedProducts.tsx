@@ -86,16 +86,6 @@ const MostSearchedProducts: React.FC = () => {
     fetchProducts();
   }, []);
 
-  const handleSlide = (productId: string, dir: "left" | "right", offersLength: number) => {
-    setOfferIndexes((prev) => {
-      const current = prev[productId] || 0;
-      let next = dir === "right" ? current + 1 : current - 1;
-      if (next < 0) next = offersLength - 1;
-      if (next >= offersLength) next = 0;
-      return { ...prev, [productId]: next };
-    });
-  };
-
   if (loading)
     return <div className="p-4">Cargando productos más buscados...</div>;
 
@@ -103,19 +93,16 @@ const MostSearchedProducts: React.FC = () => {
   const startIndex = currentPage * productsPerPage;
   const visibleProducts = products.slice(startIndex, startIndex + productsPerPage);
 
+  // Calcular el número de productos visibles y los espacios vacíos para mantener el tamaño
+  const emptySlots = productsPerPage - visibleProducts.length;
+
   return (
     <section className="w-full mx-auto mt-10 mb-4 px-4 max-w-7xl">
       <h2 className="text-xl font-medium text-[#611232] mb-6 ml-1">
         Productos más buscados
       </h2>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 min-h-[900px]">
         {visibleProducts.map((product) => {
-          const startIdx = offerIndexes[product.id] || 0;
-          const visibleOffers = product.offers.slice(startIdx, startIdx + 2).concat(
-            startIdx + 2 > product.offers.length
-              ? product.offers.slice(0, (startIdx + 2) % product.offers.length)
-              : []
-          );
           return (
             <div
               key={product.id}
@@ -161,78 +148,97 @@ const MostSearchedProducts: React.FC = () => {
                       <span className="text-sm text-gray-400">Sin ofertas para hoy</span>
                     </div>
                   ) : (
-                    <div className="flex flex-row items-start gap-4 w-full">
-                      <div className={`grid ${visibleOffers.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-6 flex-1`}>
-                        {visibleOffers.map((offer, idx) => (
-                          <div key={idx} className="min-w-0 w-full">
-                            <OfferWithStore offer={offer} />
-                          </div>
-                        ))}
+                    <>
+                      {/* Paginación de ofertas: abajo, centrada, de 2 en 2 */}
+                      <div className={`grid ${product.offers.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-6 flex-1`}>
+                        {product.offers
+                          .slice(offerIndexes[product.id] || 0, (offerIndexes[product.id] || 0) + 2)
+                          .map((offer, idx) => (
+                            <div key={idx} className="min-w-0 w-full">
+                              <OfferWithStore offer={offer} />
+                            </div>
+                          ))}
                       </div>
                       {product.offers.length > 2 && (
-                        <div className="flex flex-row gap-3 items-center">
+                        <div className="flex justify-center items-center gap-3 mt-4">
                           <button
-                            onClick={() => handleSlide(product.id, "left", product.offers.length)}
-                            className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none"
+                            onClick={() => {
+                              setOfferIndexes(prev => {
+                                const current = prev[product.id] || 0;
+                                if (current === 0) return prev;
+                                return { ...prev, [product.id]: current - 2 };
+                              });
+                            }}
+                            disabled={(offerIndexes[product.id] || 0) === 0}
+                            className="bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 text-[#681837] font-semibold focus:outline-none disabled:opacity-50"
                             aria-label="Anterior"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#681837" className="w-5 h-5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                            </svg>
+                            Anterior
                           </button>
-                          <span className="text-sm text-gray-500 min-w-[60px] text-center">
-                            {startIdx + 1} - {((startIdx + 2 - 1) % product.offers.length) + 1} / {product.offers.length}
+                          <span className="text-sm text-gray-700 select-none font-medium">
+                            Página {Math.floor((offerIndexes[product.id] || 0) / 2) + 1} de {Math.ceil(product.offers.length / 2)}
                           </span>
                           <button
-                            onClick={() => handleSlide(product.id, "right", product.offers.length)}
-                            className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none"
+                            onClick={() => {
+                              setOfferIndexes(prev => {
+                                const current = prev[product.id] || 0;
+                                if (current + 2 >= product.offers.length) return prev;
+                                return { ...prev, [product.id]: current + 2 };
+                              });
+                            }}
+                            disabled={(offerIndexes[product.id] || 0) + 2 >= product.offers.length}
+                            className="bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 text-[#681837] font-semibold focus:outline-none disabled:opacity-50"
                             aria-label="Siguiente"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#681837" className="w-5 h-5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                            </svg>
+                            Siguiente
                           </button>
                         </div>
                       )}
-                    </div>
+                    </>
                   )}
                 </div>
               </div>
             </div>
           );
         })}
+        {/* Rellenar con espacios vacíos para mantener el tamaño del contenedor al cambiar de página */}
+        {emptySlots > 0 && Array.from({ length: emptySlots }).map((_, idx) => (
+          <div key={idx} className="bg-transparent rounded-xl p-6 w-full min-h-[180px]" aria-hidden="true"></div>
+        ))}
       </div>
 
-      {/* Paginación */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-3 mt-6">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-            disabled={currentPage === 0}
-            className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none disabled:opacity-50"
-            aria-label="Página anterior"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#681837" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-          </button>
-          
-          <span className="text-sm text-gray-600">
-            Página {currentPage + 1} de {totalPages}
-          </span>
-
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-            disabled={currentPage === totalPages - 1}
-            className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none disabled:opacity-50"
-            aria-label="Página siguiente"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#681837" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-          </button>
-        </div>
-      )}
+      {/* Paginación centrada siempre visible */}
+      <div className="flex justify-center items-center gap-2 mt-8" id="paginacion-mas-buscados">
+        <button
+          onClick={() => {
+            setCurrentPage(prev => Math.max(0, prev - 1));
+            document.getElementById('paginacion-mas-buscados')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }}
+          disabled={currentPage === 0}
+          className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none disabled:opacity-50"
+          aria-label="Página anterior"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#681837" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        <span className="text-sm text-gray-600 select-none">
+          Página {currentPage + 1} de {totalPages}
+        </span>
+        <button
+          onClick={() => {
+            setCurrentPage(prev => Math.min(totalPages - 1, prev + 1));
+            document.getElementById('paginacion-mas-buscados')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }}
+          disabled={currentPage === totalPages - 1}
+          className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none disabled:opacity-50"
+          aria-label="Página siguiente"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#681837" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
     </section>
   );
 };
