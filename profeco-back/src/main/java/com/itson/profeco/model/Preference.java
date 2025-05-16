@@ -5,8 +5,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,21 +34,19 @@ public class Preference {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", referencedColumnName = "id", unique = true, nullable = false)
     private Customer customer;
 
     @OneToMany(mappedBy = "preference")
     private List<ProductSearch> productSearches = new ArrayList<>();
 
     @ManyToMany
-    @JoinTable(name = "preference_favorite_stores",
-            joinColumns = @JoinColumn(name = "preference_id"),
-            inverseJoinColumns = @JoinColumn(name = "store_id"))
+    @JoinTable(name = "preference_favorite_stores", joinColumns = @JoinColumn(name = "preference_id"), inverseJoinColumns = @JoinColumn(name = "store_id"))
     private Set<Store> favoriteStores = new HashSet<>();
 
     @ManyToMany
-    @JoinTable(name = "preference_shopping_list", joinColumns = @JoinColumn(name = "preference_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id"))
+    @JoinTable(name = "preference_shopping_list", joinColumns = @JoinColumn(name = "preference_id"), inverseJoinColumns = @JoinColumn(name = "product_id"))
     private Set<Product> shoppingList = new HashSet<>();
 
 }

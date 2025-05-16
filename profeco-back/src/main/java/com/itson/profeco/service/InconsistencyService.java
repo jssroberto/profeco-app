@@ -3,9 +3,11 @@ package com.itson.profeco.service;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.itson.profeco.api.dto.request.InconsistencyRequest;
 import com.itson.profeco.api.dto.request.UpdateInconsistencyStatusRequest; // Added import
 import com.itson.profeco.api.dto.response.InconsistencyResponse;
@@ -14,10 +16,12 @@ import com.itson.profeco.mapper.InconsistencyMapper;
 import com.itson.profeco.model.Customer;
 import com.itson.profeco.model.Inconsistency;
 import com.itson.profeco.model.InconsistencyStatus;
+import com.itson.profeco.model.StoreProduct; // Added import
 import com.itson.profeco.repository.InconsistencyRepository;
 import com.itson.profeco.repository.InconsistencyStatusRepository;
 import com.itson.profeco.repository.StoreProductRepository;
 import com.itson.profeco.repository.StoreRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -45,8 +49,7 @@ public class InconsistencyService {
         if (customer == null) {
             throw new IllegalStateException("No authenticated customer found.");
         }
-        List<Inconsistency> inconsistencies =
-                inconsistencyRepository.findByCustomerId(customer.getId());
+        List<Inconsistency> inconsistencies = inconsistencyRepository.findByCustomerId(customer.getId());
         return inconsistencies.stream().map(inconsistencyMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -59,8 +62,7 @@ public class InconsistencyService {
                     "Authenticated store admin must be associated with a store.");
         }
         UUID storeId = currentStoreAdmin.getStoreId();
-        List<Inconsistency> inconsistencies =
-                inconsistencyRepository.findByStoreProductStoreId(storeId);
+        List<Inconsistency> inconsistencies = inconsistencyRepository.findByStoreProductStoreId(storeId);
         return inconsistencies.stream().map(inconsistencyMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -85,8 +87,7 @@ public class InconsistencyService {
         storeProductRepository.findById(storeProductId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "StoreProduct not found with id: " + storeProductId));
-        List<Inconsistency> inconsistencies =
-                inconsistencyRepository.findByStoreProductId(storeProductId);
+        List<Inconsistency> inconsistencies = inconsistencyRepository.findByStoreProductId(storeProductId);
         return inconsistencies.stream().map(inconsistencyMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -95,12 +96,11 @@ public class InconsistencyService {
     public List<InconsistencyResponse> getInconsistenciesByStore(UUID storeId) {
         storeRepository.findById(storeId).orElseThrow(
                 () -> new EntityNotFoundException("Store not found with id: " + storeId));
-        List<Inconsistency> inconsistencies =
-                inconsistencyRepository.findByStoreProductStoreId(storeId);
+        List<Inconsistency> inconsistencies = inconsistencyRepository.findByStoreProductStoreId(storeId);
         return inconsistencies.stream().map(inconsistencyMapper::toResponse)
                 .collect(Collectors.toList());
     }
-    
+
     @Transactional
     public InconsistencyResponse saveInconsistency(InconsistencyRequest request) {
         Customer customer = customerService.getAuthenticatedCustomerEntity();
@@ -109,18 +109,20 @@ public class InconsistencyService {
                     "No authenticated customer found to report inconsistency.");
         }
 
-        storeProductRepository.findById(request.getStoreProductId())
+        StoreProduct storeProduct = storeProductRepository.findById(request.getStoreProductId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         "StoreProduct not found with id: " + request.getStoreProductId()));
 
-        InconsistencyStatus pendingStatus =
-                inconsistencyStatusRepository.findByName(defaultStatusOpen).orElseThrow(
-                        () -> new EntityNotFoundException("Default inconsistency status '"
-                                + defaultStatusOpen + "' not found."));
+        InconsistencyStatus pendingStatus = inconsistencyStatusRepository.findByName(defaultStatusOpen).orElseThrow(
+                () -> new EntityNotFoundException("Default inconsistency status '"
+                        + defaultStatusOpen + "' not found."));
 
         Inconsistency inconsistency = inconsistencyMapper.toEntity(request);
         inconsistency.setCustomer(customer);
         inconsistency.setStatus(pendingStatus);
+        inconsistency.setStoreProduct(storeProduct);
+        if (storeProduct.getPrice() != null)
+            inconsistency.setPublishedPrice(storeProduct.getPrice().doubleValue());
 
         Inconsistency savedInconsistency = inconsistencyRepository.save(inconsistency);
         return inconsistencyMapper.toResponse(savedInconsistency);

@@ -5,9 +5,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.itson.profeco.api.dto.request.StoreOfferRequest;
 import com.itson.profeco.api.dto.request.StoreProductRequest;
 import com.itson.profeco.api.dto.response.StoreOfferResponse;
@@ -20,8 +22,8 @@ import com.itson.profeco.model.Store;
 import com.itson.profeco.model.StoreProduct;
 import com.itson.profeco.repository.ProductRepository;
 import com.itson.profeco.repository.StoreProductRepository;
-import lombok.RequiredArgsConstructor;
 
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +41,8 @@ public class StoreProductService {
         Product product = productRepository.findById(request.getProduct())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Product not found with ID: " + request.getProduct()));
-        List<StoreProduct> existingEntries =
-                storeProductRepository.findByStore_IdAndProduct_Id(store.getId(), product.getId());
+        List<StoreProduct> existingEntries = storeProductRepository.findByStore_IdAndProduct_Id(store.getId(),
+                product.getId());
         if (!existingEntries.isEmpty()) {
             throw new DataIntegrityViolationException("A product listing for product ID "
                     + product.getId() + " already exists in store ID " + store.getId()
@@ -90,7 +92,6 @@ public class StoreProductService {
             existingProduct.setOfferEndDate(null);
         }
 
-
         StoreProduct updatedProduct = storeProductRepository.save(existingProduct);
         return storeProductMapper.entityToProductResponse(updatedProduct);
     }
@@ -100,8 +101,6 @@ public class StoreProductService {
         StoreProduct storeProduct = findStoreProductEntityById(id);
         return storeProductMapper.entityToProductResponse(storeProduct);
     }
-
-
 
     @Transactional
     public void deleteStoreProduct(UUID id) {
@@ -167,7 +166,7 @@ public class StoreProductService {
 
     @Transactional(readOnly = true)
     public List<StoreOfferResponse> getProductsWithAnyOffer() {
-        return storeProductRepository.findByOfferPriceNotNull().stream()
+        return storeProductRepository.findAllByOfferPriceNotNullAndOfferDateActive(LocalDate.now()).stream()
                 .map(storeProductMapper::entityToOfferResponse).collect(Collectors.toList());
     }
 
@@ -241,6 +240,13 @@ public class StoreProductService {
     public List<StoreProductResponse> findStoreProductsWithValidPrices(UUID storeId) {
         return storeProductRepository.findStoreProductsWithoutOfferOrderedByPrice(storeId).stream()
                 .map(storeProductMapper::entityToProductResponse).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<StoreProductResponse> getAllStoreProducts() {
+        return storeProductRepository.findAll().stream()
+                .map(storeProductMapper::entityToProductResponse)
+                .collect(Collectors.toList());
     }
 
     private StoreProduct findStoreProductEntityById(UUID id) {

@@ -14,6 +14,7 @@ import com.itson.profeco.api.dto.request.CustomerRequest;
 import com.itson.profeco.api.dto.response.CustomerResponse;
 import com.itson.profeco.mapper.CustomerMapper;
 import com.itson.profeco.model.Customer;
+import com.itson.profeco.model.Preference;
 import com.itson.profeco.model.Role;
 import com.itson.profeco.model.UserEntity;
 import com.itson.profeco.repository.CustomerRepository;
@@ -103,26 +104,20 @@ public class CustomerService {
         Customer customer = customerMapper.toEntity(customerRequest);
         UserEntity user = customer.getUser();
 
-        if (user == null) {
-            throw new IllegalStateException(
-                    "User entity cannot be null when creating a new customer.");
-        }
-
         if (customerRepository.findByUser_Email(user.getEmail()).isPresent()) {
             throw new DataIntegrityViolationException(
                     "A customer with the email '" + user.getEmail() + "' already exists.");
         }
 
-        if (customerRequest.getPassword() != null && !customerRequest.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(customerRequest.getPassword()));
-        } else {
-            throw new IllegalArgumentException("The password cannot be empty for a new customer.");
-        }
-
         Role defaultRole = roleService.getRoleEntityByName(defaultUserRole);
         user.setRoles(Set.of(defaultRole));
 
+        Preference preference = new Preference();
+        preference.setCustomer(customer);
+        customer.setPreference(preference);
+
         Customer savedCustomer = customerRepository.save(customer);
+
         return customerMapper.toResponse(savedCustomer);
     }
 

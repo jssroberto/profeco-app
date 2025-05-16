@@ -121,8 +121,6 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(customUserDetails));
     }
 
-
-
     private AuthResponse buildAuthResponse(CustomUserDetails userDetails) {
         String token = jwtUtil.generateToken(userDetails);
         AuthResponse.AuthResponseBuilder builder = AuthResponse.builder()

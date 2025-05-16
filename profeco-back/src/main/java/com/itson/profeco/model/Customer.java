@@ -3,6 +3,7 @@ package com.itson.profeco.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,7 +38,7 @@ public class Customer {
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private UserEntity user;
 
-    @OneToOne(mappedBy = "customer")
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Preference preference;
 
     @OneToMany(mappedBy = "customer")
