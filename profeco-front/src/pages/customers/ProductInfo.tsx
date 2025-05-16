@@ -28,9 +28,13 @@ const ProductInfo = () => {
           );
           const storeResponse = await axios.get(
             `http://localhost:8080/api/v1/stores/${productStoreResponse.data.storeId}`,
-
             { headers: { Authorization: `Bearer ${token}` }}
           );
+          const otherProductsResponse = await axios.get(
+            `http://localhost:8080/api/v1/store-products/by-product-name?name=${productResponse.data.name}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          console.log(otherProductsResponse);
           setProduct({
             name: productResponse.data.name,
             imageUrl: productResponse.data.imageUrl.startsWith("http")
