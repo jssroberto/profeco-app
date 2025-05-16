@@ -1,6 +1,6 @@
+import { FileWarning } from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileWarning } from 'lucide-react';
 import { useProfecoAdmin } from '../../context/ProfecoAdminContext';
 
 const ProfecoDashboard: React.FC = () => {
@@ -11,17 +11,16 @@ const ProfecoDashboard: React.FC = () => {
     const cards = [
     {
       icon: <FileWarning className="w-6 h-6" />,
-      title: "Mirar reportes de Inconsistencias",
+      title: "Ver Reportes de Inconsistencias",
       path: "/reportes",
     }
   ];
 
     return (
-        <div className="p-8 space-y-6 mt-20">
-      <div>
-        <h1 className="text-2xl font-bold">Bienvenido, {admin?.name}</h1>
-        <p className="text-gray-600"></p>
-      </div>
+        <div className="p-8 mt-20 max-w-7xl mx-auto">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold mb-2 text-gray-800">Bienvenido, {admin?.name}</h1>
+      </header>
 
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
         {cards.map(({ icon, title, path }, index) => (
@@ -35,8 +34,6 @@ const ProfecoDashboard: React.FC = () => {
           </button>
         ))}
       </div>
-
-
     </div>
     );
 };

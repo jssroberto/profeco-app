@@ -3,13 +3,10 @@ package com.itson.profeco.service;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.itson.profeco.api.dto.request.InconsistencyRequest;
-import com.itson.profeco.api.dto.request.UpdateInconsistencyStatusRequest; // Added import
 import com.itson.profeco.api.dto.response.InconsistencyResponse;
 import com.itson.profeco.api.dto.response.StoreAdminResponse;
 import com.itson.profeco.mapper.InconsistencyMapper;
@@ -21,7 +18,6 @@ import com.itson.profeco.repository.InconsistencyRepository;
 import com.itson.profeco.repository.InconsistencyStatusRepository;
 import com.itson.profeco.repository.StoreProductRepository;
 import com.itson.profeco.repository.StoreRepository;
-
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -43,13 +39,17 @@ public class InconsistencyService {
     @Value("${inconsistency.status.open}")
     private String defaultStatusOpen;
 
+    @Value("${inconsistency.status.closed}")
+    private String defaultStatusClosed;
+
     @Transactional(readOnly = true)
     public List<InconsistencyResponse> getInconsistenciesByCurrentCustomer() {
         Customer customer = customerService.getAuthenticatedCustomerEntity();
         if (customer == null) {
             throw new IllegalStateException("No authenticated customer found.");
         }
-        List<Inconsistency> inconsistencies = inconsistencyRepository.findByCustomerId(customer.getId());
+        List<Inconsistency> inconsistencies =
+                inconsistencyRepository.findByCustomerId(customer.getId());
         return inconsistencies.stream().map(inconsistencyMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -62,7 +62,8 @@ public class InconsistencyService {
                     "Authenticated store admin must be associated with a store.");
         }
         UUID storeId = currentStoreAdmin.getStoreId();
-        List<Inconsistency> inconsistencies = inconsistencyRepository.findByStoreProductStoreId(storeId);
+        List<Inconsistency> inconsistencies =
+                inconsistencyRepository.findByStoreProductStoreId(storeId);
         return inconsistencies.stream().map(inconsistencyMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -87,7 +88,8 @@ public class InconsistencyService {
         storeProductRepository.findById(storeProductId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "StoreProduct not found with id: " + storeProductId));
-        List<Inconsistency> inconsistencies = inconsistencyRepository.findByStoreProductId(storeProductId);
+        List<Inconsistency> inconsistencies =
+                inconsistencyRepository.findByStoreProductId(storeProductId);
         return inconsistencies.stream().map(inconsistencyMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -96,7 +98,8 @@ public class InconsistencyService {
     public List<InconsistencyResponse> getInconsistenciesByStore(UUID storeId) {
         storeRepository.findById(storeId).orElseThrow(
                 () -> new EntityNotFoundException("Store not found with id: " + storeId));
-        List<Inconsistency> inconsistencies = inconsistencyRepository.findByStoreProductStoreId(storeId);
+        List<Inconsistency> inconsistencies =
+                inconsistencyRepository.findByStoreProductStoreId(storeId);
         return inconsistencies.stream().map(inconsistencyMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -113,9 +116,9 @@ public class InconsistencyService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "StoreProduct not found with id: " + request.getStoreProductId()));
 
-        InconsistencyStatus pendingStatus = inconsistencyStatusRepository.findByName(defaultStatusOpen).orElseThrow(
-                () -> new EntityNotFoundException("Default inconsistency status '"
-                        + defaultStatusOpen + "' not found."));
+        InconsistencyStatus pendingStatus = inconsistencyStatusRepository
+                .findByName(defaultStatusOpen).orElseThrow(() -> new EntityNotFoundException(
+                        "Default inconsistency status '" + defaultStatusOpen + "' not found."));
 
         Inconsistency inconsistency = inconsistencyMapper.toEntity(request);
         inconsistency.setCustomer(customer);
@@ -129,18 +132,22 @@ public class InconsistencyService {
     }
 
     @Transactional
-    public InconsistencyResponse updateInconsistencyStatus(UUID inconsistencyId,
-            UpdateInconsistencyStatusRequest statusRequest) {
+    public InconsistencyResponse updateInconsistencyStatus(UUID inconsistencyId) {
         Inconsistency inconsistency = inconsistencyRepository.findById(inconsistencyId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Inconsistency not found with id: " + inconsistencyId));
 
-        InconsistencyStatus newStatus = inconsistencyStatusRepository
-                .findByName(statusRequest.getStatus())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "InconsistencyStatus not found with name: " + statusRequest.getStatus()));
+        if (inconsistency.getStatus().getName().equalsIgnoreCase(defaultStatusClosed)) {
+            throw new IllegalStateException("Inconsistency is already closed.");
+        }
 
-        inconsistency.setStatus(newStatus);
+        InconsistencyStatus closedStatus =
+                inconsistencyStatusRepository.findByName(defaultStatusClosed.toUpperCase())
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "InconsistencyStatus not found with name: "
+                                        + defaultStatusClosed.toUpperCase()));
+
+        inconsistency.setStatus(closedStatus);
         Inconsistency updatedInconsistency = inconsistencyRepository.save(inconsistency);
         return inconsistencyMapper.toResponse(updatedInconsistency);
     }

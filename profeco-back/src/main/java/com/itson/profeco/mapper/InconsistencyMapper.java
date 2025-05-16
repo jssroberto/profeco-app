@@ -27,8 +27,10 @@ public interface InconsistencyMapper {
     @Mapping(target = "actualPrice", source = "actualPrice")
     @Mapping(target = "dateTime", expression = "java(inconsistency.getDateTime() != null ? inconsistency.getDateTime().toString() : null)")
     @Mapping(target = "status", source = "status.name")
-    @Mapping(target = "customer", source = "customer")
-    @Mapping(target = "storeProduct", source = "storeProduct")
+    @Mapping(target = "customerId", source = "customer.id")
+    @Mapping(target = "storeProductId", source = "storeProduct.id")
+    @Mapping(target = "storeName", source = "storeProduct.store.name")
+    @Mapping(target = "productName", source = "storeProduct.product.name")
     InconsistencyResponse toResponse(Inconsistency inconsistency);
 
     default StoreProduct mapStoreProductFromId(UUID storeProductId) {

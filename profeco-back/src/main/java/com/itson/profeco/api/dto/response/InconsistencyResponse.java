@@ -22,8 +22,12 @@ public class InconsistencyResponse {
 
     private String status;
 
-    private CustomerResponse customer;
-    
-    private StoreProductResponse storeProduct;
+    private UUID customerId;
+
+    private UUID storeProductId;
+
+    private String storeName;
+
+    private String productName;
 
 }
