@@ -11,27 +11,30 @@ const ProductInfo = () => {
   const { id } = useParams();
   const { token } = useAuth();
   const [product, setProduct] = useState<any>(null);
+  const [productStore, setProductStore] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
+        const storeResponse = await axios.get(
           `http://localhost:8080/api/v1/store-products/e5fb1d68-4352-417d-b154-65cb2d3e0001`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        setProduct(response.data);
+        setProductStore(storeResponse.data);
+        if (storeResponse.data?.productId) {
+          const productResponse = await axios.get(
+            `http://localhost:8080/api/v1/products/${storeResponse.data.productId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setProduct(productResponse.data);
+        }
       } catch (e) {
         console.error(e);
       }
-    }
+    };
     fetchData();
-  }, []);
-  console.log(product);
+  }, [token]);
   return (
     <div className="max-w-6xl mx-auto p-4 mt-24">
       <div className="grid md:grid-cols-2 gap-8">
@@ -40,7 +43,7 @@ const ProductInfo = () => {
             <Heart className="w-6 h-6 text-gray-600" />
           </button>
           <img
-            src={product?.imageUrl}
+            src={"http://" + product?.imageUrl}
             alt="Pan Blanco Artesanal Bimbo"
             className="w-full object-contain"
           />
