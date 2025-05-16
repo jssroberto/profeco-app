@@ -3,7 +3,6 @@ package com.itson.profeco.controller;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,12 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.util.UriBuilder;
-
 import com.itson.profeco.api.dto.request.UpdateInconsistencyStatusRequest;
 import com.itson.profeco.api.dto.response.InconsistencyResponse;
 import com.itson.profeco.service.InconsistencyService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +27,8 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("api/v1/profeco-admin/inconsistencies")
 @RequiredArgsConstructor
-@Tag(name = "Profeco Admin Inconsistencies", description = "Inconsistency operations for Profeco Admins")
+@Tag(name = "Profeco Admin Inconsistencies",
+        description = "Inconsistency operations for Profeco Admins")
 @SecurityRequirement(name = "bearerAuth")
 @PreAuthorize("hasRole(@environment.getProperty('role.profeco-admin'))")
 public class ProfecoAdminInconsistencyController {
@@ -41,8 +38,8 @@ public class ProfecoAdminInconsistencyController {
     @GetMapping
     @Operation(summary = "Get all inconsistencies")
     public ResponseEntity<List<InconsistencyResponse>> getAllInconsistencies() {
-        List<InconsistencyResponse> inconsistencyResponses = inconsistencyService
-                .getAllInconsistenciesForProfecoAdmin();
+        List<InconsistencyResponse> inconsistencyResponses =
+                inconsistencyService.getAllInconsistenciesForProfecoAdmin();
         return ResponseEntity.ok(inconsistencyResponses);
     }
 
@@ -50,7 +47,8 @@ public class ProfecoAdminInconsistencyController {
     @Operation(summary = "Get a specific inconsistency by ID")
     public ResponseEntity<InconsistencyResponse> getInconsistencyById(
             @PathVariable UUID inconsistencyId) {
-        InconsistencyResponse inconsistencyResponse = inconsistencyService.getInconsistencyById(inconsistencyId);
+        InconsistencyResponse inconsistencyResponse =
+                inconsistencyService.getInconsistencyById(inconsistencyId);
         return ResponseEntity.ok(inconsistencyResponse);
     }
 
@@ -58,23 +56,22 @@ public class ProfecoAdminInconsistencyController {
     @Operation(summary = "Get all inconsistencies for a specific store ID")
     public ResponseEntity<List<InconsistencyResponse>> getInconsistenciesByStoreId(
             @PathVariable UUID storeId) {
-        List<InconsistencyResponse> inconsistencyResponses = inconsistencyService.getInconsistenciesByStore(storeId);
+        List<InconsistencyResponse> inconsistencyResponses =
+                inconsistencyService.getInconsistenciesByStore(storeId);
         return ResponseEntity.ok(inconsistencyResponses);
     }
 
     @PatchMapping("/{inconsistencyId}/status")
     @Operation(summary = "Update the status of an inconsistency")
     public ResponseEntity<InconsistencyResponse> updateInconsistencyStatus(
-        @PathVariable UUID inconsistencyId,
-        @Valid @RequestBody UpdateInconsistencyStatusRequest statusRequest) {
-        InconsistencyResponse inconsistencyResponse = inconsistencyService.updateInconsistencyStatus(inconsistencyId,
-                statusRequest);
+            @PathVariable UUID inconsistencyId,
+            @Valid @RequestBody UpdateInconsistencyStatusRequest statusRequest) {
+        InconsistencyResponse inconsistencyResponse =
+                inconsistencyService.updateInconsistencyStatus(inconsistencyId, statusRequest);
         URI resourceUri = ServletUriComponentsBuilder.fromCurrentRequest()
                 .replacePath("/api/v1/profeco-admin/inconsistencies/{id}")
-                .buildAndExpand(inconsistencyId)
-                .toUri();
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_LOCATION, resourceUri.toString())
+                .buildAndExpand(inconsistencyId).toUri();
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_LOCATION, resourceUri.toString())
                 .body(inconsistencyResponse);
     }
 }

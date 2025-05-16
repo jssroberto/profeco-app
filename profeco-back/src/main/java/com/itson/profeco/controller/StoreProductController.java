@@ -174,7 +174,7 @@ public class StoreProductController {
             @ApiResponse(responseCode = "403",
                     description = "Forbidden - User does not have STORE_ADMIN role")})
     @PostMapping
-    @PreAuthorize("hasRole(@environment.getProperty('role.store_admin'))")
+    @PreAuthorize("hasRole(@environment.getProperty('role.store-admin'))")
     public ResponseEntity<StoreProductResponse> createStoreProduct(
             @Valid @RequestBody StoreProductRequest request) {
         StoreProductResponse response = storeProductService.createStoreProduct(request);
