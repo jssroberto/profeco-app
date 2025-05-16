@@ -18,8 +18,8 @@ public class ProductResponse {
 
     private String imageUrl;
 
-    private UUID categoryId;
+    private String categoryName;
 
-    private UUID brandId;
+    private String brandName;
 
 }

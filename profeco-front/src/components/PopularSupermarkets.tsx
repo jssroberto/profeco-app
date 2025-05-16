@@ -16,6 +16,8 @@ interface Supermarket {
 const PopularSupermarkets = () => {
   const [supermarkets, setSupermarkets] = useState<Supermarket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const supermarketsPerPage = 2;
   const { token } = useAuth();
 
   useEffect(() => {
@@ -58,17 +60,33 @@ const PopularSupermarkets = () => {
     fetchSupermarkets();
   }, []);
 
+  const totalPages = Math.ceil(supermarkets.length / supermarketsPerPage);
+  const startIndex = currentPage * supermarketsPerPage;
+  const visibleSupermarkets = supermarkets.slice(startIndex, startIndex + supermarketsPerPage);
+
+  const nextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
   if (loading) {
     return <div className="p-4">Cargando supermercados...</div>;
   }
 
   return (
-    <section className="w-full mx-auto mt-10 mb-4 px-4 max-w-7xl ">
+    <section className="w-full mx-auto mt-10 mb-4 px-4 max-w-7xl">
       <h2 className="text-xl font-medium text-[#611232] mb-4 ml-1">
         Supermercados populares
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {supermarkets.map((market) => (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {visibleSupermarkets.map((market) => (
           <SupermarketCard
             key={market.id}
             id={market.id}
@@ -80,6 +98,27 @@ const PopularSupermarkets = () => {
           />
         ))}
       </div>
+      {supermarkets.length > supermarketsPerPage && (
+        <div className="flex justify-center items-center mt-6 gap-4">
+          <button
+            onClick={prevPage}
+            disabled={currentPage === 0}
+            className="px-4 py-2 rounded-lg border border-[#aaadb0] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
+          >
+            Anterior
+          </button>
+          <span className="text-[#681837]">
+            Página {currentPage + 1} de {totalPages}
+          </span>
+          <button
+            onClick={nextPage}
+            disabled={currentPage === totalPages - 1}
+            className="px-4 py-2 rounded-lg border border-[#aaadb0] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
+          >
+            Siguiente
+          </button>
+        </div>
+      )}
     </section>
   );
 };

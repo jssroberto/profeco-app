@@ -15,8 +15,8 @@ public interface ProductMapper {
     @Mapping(target = "imageUrl", ignore = true)
     Product toEntity(ProductRequest request);
 
-    @Mapping(source = "category.id", target = "categoryId")
-    @Mapping(source = "brand.id", target = "brandId")
+    @Mapping(source = "category.name", target = "categoryName")
+    @Mapping(source = "brand.name", target = "brandName")
     ProductResponse toResponse(Product product);
     
 }

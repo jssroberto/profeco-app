@@ -36,8 +36,8 @@ const SupermarketCard: React.FC<Supermarket> = ({
   description,
 }) => {
   return (
-    <div className="flex flex-col bg-white rounded-xl border border-[#E3E5EA] shadow-md hover:shadow-lg transition-shadow duration-200 max-w-xs min-w-[260px] w-full sm:w-[300px] mx-auto">
-      <div className="relative h-36 overflow-hidden rounded-t-xl bg-gray-100">
+    <div className="flex flex-col bg-white rounded-xl border border-[#E3E5EA] shadow-md hover:shadow-lg transition-shadow duration-200 w-full">
+      <div className="relative h-48 overflow-hidden rounded-t-xl bg-gray-100">
         <img
           src={image}
           alt={name}
@@ -46,26 +46,26 @@ const SupermarketCard: React.FC<Supermarket> = ({
         />
       </div>
 
-      <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
-        <h3 className="font-bold text-lg text-[#1A1F2C] mb-1 line-clamp-1">
+      <div className="flex flex-col flex-1 p-6">
+        <h3 className="font-bold text-xl text-[#1A1F2C] mb-2 line-clamp-1">
           {name}
         </h3>
 
-        <div className="flex items-center text-sm text-gray-600 mb-1 gap-1">
+        <div className="flex items-center text-base text-gray-600 mb-2 gap-1">
           <span>{renderStars(rating)}</span>
-          <span className="ml-1 font-medium text-gray-700">
+          <span className="ml-2 font-medium text-gray-700">
             {rating.toFixed(1)}
           </span>
-          <span className="text-gray-400">({reviews} opiniones)</span>
+          <span className="text-gray-400 ml-1">({reviews} opiniones)</span>
         </div>
 
-        <p className="text-[15px] text-gray-500 mb-4 line-clamp-2">
+        <p className="text-base text-gray-500 mb-6 line-clamp-2">
           {description}
         </p>
 
-        <Link to={`/negocios/${id}`}>
+        <Link to={`/negocios/${id}`} className="mt-auto">
           <button
-            className="mt-auto border border-[#aaadb0] text-[#681837] font-medium py-2 rounded-lg transition-colors ease-in-out duration-500 hover:bg-[#681837] hover:text-white w-full cursor-pointer"
+            className="border border-[#aaadb0] text-[#681837] font-medium py-3 rounded-lg transition-colors ease-in-out duration-500 hover:bg-[#681837] hover:text-white w-full cursor-pointer"
             style={{ boxShadow: "0 1px 2px 0 rgba(30,30,50,0.04)" }}
           >
             Ir al supermercado
