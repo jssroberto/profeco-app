@@ -12,7 +12,7 @@ interface Product {
 
 interface ProductsSectionProps {
   products: Product[];
-  storeId: string; // nuevo prop
+  storeId: string;
 }
 
 const ProductsSection = ({ products, storeId }: ProductsSectionProps) => {

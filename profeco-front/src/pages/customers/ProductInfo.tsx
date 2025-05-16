@@ -7,13 +7,12 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 
 const ProductInfo = () => {
-
   const { id } = useParams();
   const { token } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [otherProducts, setOtherProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -29,7 +28,7 @@ const ProductInfo = () => {
           );
           const storeResponse = await axios.get(
             `http://localhost:8080/api/v1/stores/${productStoreResponse.data.storeId}`,
-            { headers: { Authorization: `Bearer ${token}` }}
+            { headers: { Authorization: `Bearer ${token}` } }
           );
           const otherProductsResponse = await axios.get(
             `http://localhost:8080/api/v1/store-products/by-product-name?name=${productResponse.data.name}`,
@@ -44,7 +43,7 @@ const ProductInfo = () => {
               return {
                 price: element.price,
                 storeName: storeRes.data.name,
-                storeId: element.storeId
+                storeId: element.storeId,
               };
             })
           );
@@ -55,7 +54,7 @@ const ProductInfo = () => {
               ? productResponse.data.imageUrl
               : `http://${productResponse.data.imageUrl}`,
             price: productStoreResponse.data.price,
-            storeName: storeResponse.data.name
+            storeName: storeResponse.data.name,
           });
           setOtherProducts(otherProductsWithStores);
         }
@@ -86,21 +85,29 @@ const ProductInfo = () => {
             <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm">
               Oferta
             </div>
-            <h1 className="text-2xl font-semibold mt-2">
-              {product?.name}
-            </h1>
+            <h1 className="text-2xl font-semibold mt-2">{product?.name}</h1>
             <div className="flex items-baseline gap-2 mt-4">
               <span className="text-4xl font-bold">{product?.price}</span>
             </div>
             <div className="flex gap-4 text-gray-600 mt-4 text-sm">
-              {/* <span>Marca: BIMBO</span> */}
               <span>Vendido por: {product?.storeName}</span>
             </div>
           </div>
 
           <div className="space-y-2">
             <Button>Agregar a WishList</Button>
-            <Link to={`/productos/${product?.id}/reportar`}>
+            <Link
+              to={`/productos/${id}/reportar`}
+              state={{
+                product: product && {
+                  name: product.name,
+                  store: product.storeName,
+                  image: product.imageUrl,
+                  publishedPrice: product.price,
+                  storeProductId: id
+                }
+              }}
+            >
               <Button variant="outline" className="text-red-500">
                 Reportar inconsistencia
               </Button>
@@ -117,8 +124,9 @@ const ProductInfo = () => {
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{item.storeName}</span>
                     <div>
-                      <span className="font-bold">${item.price.toFixed(2)}</span>
-                      {/* Puedes agregar lógica para mostrar ofertas si es necesario */}
+                      <span className="font-bold">
+                        ${item.price.toFixed(2)}
+                      </span>
                       {item.price < product?.price && (
                         <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
                           OFERTA

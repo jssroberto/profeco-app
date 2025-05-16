@@ -92,8 +92,8 @@ const BaseProductInfo = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="font-bold text-lg">${sp.price.toFixed(2)}</span>
-                    <Link to={`/productos/${sp.storeProductId}`}>
-                      <Button variant="outline">Ver oferta</Button>
+                    <Link to={`/negocios/${sp.storeId}/productos/${sp.storeProductId}`}>
+                      <Button variant="outline">Ver producto en tienda</Button>
                     </Link>
                   </div>
                 </Card>
