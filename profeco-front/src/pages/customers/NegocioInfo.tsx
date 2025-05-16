@@ -59,7 +59,7 @@ const Negociosinfo = () => {
 
       // cargqa de productos SIN OFERTA
       const { data: storeProducts } = await axios.get(
-        `http://localhost:8080/api/v1/store-products/by-store/${id}/without-offer`,
+        `http://localhost:8080/api/v1/store-products/by-store/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -190,7 +190,6 @@ const Negociosinfo = () => {
       } else {
         await axios.post(
           `http://localhost:8080/api/v1/preferences/favorite-stores/${id}`,
-          {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setIsFavorite(true);

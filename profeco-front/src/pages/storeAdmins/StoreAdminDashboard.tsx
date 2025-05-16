@@ -8,6 +8,7 @@ const StoreAdminDashboard: React.FC = () => {
 
   const { admin, store } = useStoreAdmin();
   
+  console.log(store?.id);
 
   const cards = [
     {
@@ -38,7 +39,6 @@ const StoreAdminDashboard: React.FC = () => {
         <h1 className="text-2xl font-bold">Bienvenido, {admin?.name}</h1>
         <p className="text-gray-600">{store?.name}, {store?.location}</p>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {cards.map(({ icon, title, path }, index) => (
           <button
@@ -51,7 +51,6 @@ const StoreAdminDashboard: React.FC = () => {
           </button>
         ))}
       </div>
-
       <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 shadow-md flex justify-between items-center">
         <div>
           <h2 className="text-orange-600 font-semibold">Notificaciones</h2>

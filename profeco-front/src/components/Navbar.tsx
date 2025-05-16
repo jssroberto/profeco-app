@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
   ];
 
   const storeAdminLinks: LinkItem[] = [
-    { name: "Inicio", path: "/panelAdmin" },
+    { name: "Inicio", path: "/store-dashboard" },
     { name: "Mis productos", path: "/productos" },
   ];
 
@@ -71,8 +71,21 @@ const Navbar: React.FC = () => {
                   {link.name}
                 </Link>
               ))}
-          </nav>
 
+              {isAuthenticated && 
+              role === "STORE_ADMIN" &&
+              storeAdminLinks.map((link)=> (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`text-white hover:text-[#F36464] transition duration-300 text-lg font-regular ${
+                    location.pathname === link.path ? "font-bold" : ""
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+          </nav>
           <div>
             <div className="flex max-w-xs">
               {isAuthenticated ? (
