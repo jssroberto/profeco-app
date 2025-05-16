@@ -2,7 +2,6 @@ package com.itson.profeco.service;
 
 import java.util.Set;
 
-import com.itson.profeco.model.StoreAdmin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
@@ -10,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.itson.profeco.api.dto.request.CustomerRequest;
 import com.itson.profeco.api.dto.response.CustomerResponse;
 import com.itson.profeco.mapper.CustomerMapper;
@@ -17,8 +17,9 @@ import com.itson.profeco.model.Customer;
 import com.itson.profeco.model.Role;
 import com.itson.profeco.model.UserEntity;
 import com.itson.profeco.repository.CustomerRepository;
-import com.itson.profeco.repository.UserRepository; // Added import
-import com.itson.profeco.security.CustomUserDetails; // Added import
+import com.itson.profeco.repository.UserRepository;
+import com.itson.profeco.security.CustomUserDetails;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +31,7 @@ public class CustomerService {
     private final CustomerMapper customerMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final RoleService roleService;
-    private final UserRepository userRepository; // Added UserRepository
+    private final UserRepository userRepository;
 
     @Value("${role.customer}")
     private String defaultUserRole;
@@ -125,30 +126,4 @@ public class CustomerService {
         return customerMapper.toResponse(savedCustomer);
     }
 
-    // @Transactional
-    // public CustomerResponse updateCustomer(UUID id, CustomerRequest customerRequest) {
-    // Customer existingCustomer = customerRepository.findById(id).orElseThrow(
-    // () -> new EntityNotFoundException("Customer not found with id: " + id));
-    //
-    // customerMapper.updateEntityFromRequest(customerRequest, existingCustomer);
-    //
-    // if (customerRequest.getPassword() != null && !customerRequest.getPassword().isEmpty()) {
-    // if (existingCustomer.getUser() != null) {
-    // existingCustomer.getUser()
-    // .setPassword(passwordEncoder.encode(customerRequest.getPassword()));
-    // } else {
-    // throw new IllegalStateException(
-    // "The password cannot be updated, the customer does not have an associated user.");
-    // }
-    // }
-    // Customer savedCustomer = customerRepository.save(existingCustomer);
-    // return customerMapper.toResponse(savedCustomer);
-    // }
-    //
-    // @Transactional
-    // public void deleteCustomer(UUID id) {
-    // Customer customer = customerRepository.findById(id).orElseThrow(
-    // () -> new EntityNotFoundException("Customer not found with id: " + id));
-    // customerRepository.delete(customer);
-    // }
 }
