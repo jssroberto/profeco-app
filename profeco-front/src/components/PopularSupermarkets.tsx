@@ -13,7 +13,8 @@ interface Supermarket {
   description: string;
 }
 
-const PopularSupermarkets: React.FC<{ query: string }> = ({ query }) => {
+const PopularSupermarkets: React.FC<{ query?: string }> = ({ query = "" }) => {
+
   const [supermarkets, setSupermarkets] = useState<Supermarket[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
