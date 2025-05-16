@@ -77,18 +77,6 @@ const FavoriteSupermarkets: React.FC<FavoriteSupermarketsProps> = ({ customerId 
   const startIndex = currentPage * supermarketsPerPage;
   const visibleSupermarkets = supermarkets.slice(startIndex, startIndex + supermarketsPerPage);
 
-  const nextPage = () => {
-    if (currentPage < totalPages - 1) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const prevPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
-
   if (!customerId) return <div>No hay cliente.</div>;
   if (loading) return <div className="p-4">Cargando supermercados favoritos...</div>;
 
@@ -114,22 +102,22 @@ const FavoriteSupermarkets: React.FC<FavoriteSupermarketsProps> = ({ customerId 
           ))
         )}
       </div>
-      {supermarkets.length > supermarketsPerPage && (
-        <div className="flex justify-center items-center mt-6 gap-4">
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-8">
           <button
-            onClick={prevPage}
+            onClick={() => setCurrentPage(prev => prev > 0 ? prev - 1 : prev)}
             disabled={currentPage === 0}
-            className="px-4 py-2 rounded-lg border border-[#aaadb0] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
+            className="px-4 py-2 rounded-lg border border-[#681837] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
           >
             Anterior
           </button>
-          <span className="text-[#681837]">
+          <span className="text-[#681837] font-medium">
             Página {currentPage + 1} de {totalPages}
           </span>
           <button
-            onClick={nextPage}
+            onClick={() => setCurrentPage(prev => prev < totalPages - 1 ? prev + 1 : prev)}
             disabled={currentPage === totalPages - 1}
-            className="px-4 py-2 rounded-lg border border-[#aaadb0] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
+            className="px-4 py-2 rounded-lg border border-[#681837] text-[#681837] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#681837] hover:text-white transition-colors"
           >
             Siguiente
           </button>
