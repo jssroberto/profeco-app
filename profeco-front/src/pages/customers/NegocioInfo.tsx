@@ -222,12 +222,12 @@ const Negociosinfo = () => {
       />
       <OffersSection offers={offers} />
       <ProductsSection products={products} storeId={id || ""}/>
-      <StoreWish storeId={id || ""} />
       <ReviewSection
         reviews={reviews}
         storeId={id || ""}
         onReviewAdded={fetchBusinessData}
       />
+      <StoreWish storeId={id || ""} />
     </div>
   );
 };

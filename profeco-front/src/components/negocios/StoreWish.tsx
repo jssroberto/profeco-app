@@ -43,45 +43,50 @@ const StoreWish: React.FC<StoreWishProps> = ({ storeId }) => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8 ml-32 max-w-xl flex flex-col gap-4"
-    >
-      <label className="block text-gray-700 font-medium mb-1">
-        Escribe tu deseo:
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-          disabled={loading}
-          className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
-          placeholder="¿Qué te gustaría encontrar en este supermercado?"
-        />
-      </label>
-      <button
-        type="submit"
-        disabled={loading || !description.trim()}
-        className={`w-full py-2 rounded-lg font-semibold transition-colors ${
-          loading || !description.trim()
-            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-            : "bg-[#681837] text-white hover:bg-[#561429] cursor-pointer"
-        }`}
+    <>
+      <h2 className="text-xl font-bold mb-4 text-[#681837] text-center">
+        Agrega un deseo para este supermercado
+      </h2>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8 max-w-xl mx-auto flex flex-col gap-4"
       >
-        {loading ? "Enviando..." : "Agregar deseo"}
-      </button>
-      {message && (
-        <div
-          className={`text-center mt-2 text-sm font-medium ${
-            message.includes("exitosamente")
-              ? "text-green-600"
-              : "text-red-500"
+        <label className="block text-gray-700 font-medium mb-1">
+          Escribe tu deseo:
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            disabled={loading}
+            className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
+            placeholder="¿Qué te gustaría encontrar en este supermercado?"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={loading || !description.trim()}
+          className={`w-full py-2 rounded-lg font-semibold transition-colors ${
+            loading || !description.trim()
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-[#681837] text-white hover:bg-[#561429] cursor-pointer"
           }`}
         >
-          {message}
-        </div>
-      )}
-    </form>
+          {loading ? "Enviando..." : "Agregar deseo"}
+        </button>
+        {message && (
+          <div
+            className={`text-center mt-2 text-sm font-medium ${
+              message.includes("exitosamente")
+                ? "text-green-600"
+                : "text-red-500"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+      </form>
+    </>
   );
 };
 
