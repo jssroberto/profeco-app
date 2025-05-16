@@ -12,6 +12,9 @@ const ProductInfo = () => {
   const [product, setProduct] = useState<any>(null);
   const [otherProducts, setOtherProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [addSuccess, setAddSuccess] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,13 +69,33 @@ const ProductInfo = () => {
     };
     fetchData();
   }, [token]);
+  
+  const handleAddToShoppingList = async () => {
+    if (!product?.id) return;
+    setAdding(true);
+    setAddError(null);
+    try {
+      await axios.post(
+        `http://localhost:8080/api/v1/preferences/shopping-list/${product.id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAddSuccess(true);
+      setTimeout(() => setAddSuccess(false), 2000);
+    } catch (e) {
+      setAddError("No se pudo agregar a la lista.");
+    } finally {
+      setAdding(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4 mt-24">
       <div className="grid md:grid-cols-2 gap-8">
         <div className="relative">
-          <button className="absolute top-4 left-4 bg-white p-2 rounded-full shadow-md cursor-pointer">
+          {/* <button className="absolute top-4 left-4 bg-white p-2 rounded-full shadow-md cursor-pointer">
             <Heart className="w-6 h-6 text-gray-600" />
-          </button>
+          </button> */}
           <img
             src={product?.imageUrl}
             alt="Product image"
@@ -82,9 +105,9 @@ const ProductInfo = () => {
 
         <div className="space-y-6">
           <div>
-            <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm">
+            {/* <div className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-md text-sm">
               Oferta
-            </div>
+            </div> */}
             <h1 className="text-2xl font-semibold mt-2">{product?.name}</h1>
             <div className="flex items-baseline gap-2 mt-4">
               <span className="text-4xl font-bold">{product?.price}</span>
@@ -95,7 +118,15 @@ const ProductInfo = () => {
           </div>
 
           <div className="space-y-2">
-            <Button>Agregar a WishList</Button>
+            <Button onClick={handleAddToShoppingList} disabled={adding}>
+              {adding ? "Agregando..." : "Agregar a Shopping List"}
+            </Button>
+            {addSuccess && (
+              <div className="text-green-600 text-sm font-semibold">¡Agregado!</div>
+            )}
+            {addError && (
+              <div className="text-red-600 text-sm font-semibold">{addError}</div>
+            )}
             <Link
               to={`/productos/${id}/reportar`}
               state={{
