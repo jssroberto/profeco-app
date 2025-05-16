@@ -29,7 +29,7 @@ const Navbar: React.FC = () => {
   const storeAdminLinks: LinkItem[] = [
     { name: "Inicio", path: "/store-dashboard" },
     { name: "Inconsistencias", path: "/inconsistencias"},
-    { name: "Mis productos", path: "/productos" },
+    { name: "Precios", path: "/precios"},
   ];
 
   const profecoAdminLinks: LinkItem[] = [

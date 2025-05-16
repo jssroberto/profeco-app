@@ -23,6 +23,7 @@ import { CustomerProvider } from "./context/CustomerContext";
 import { RoleProtectedRoute } from "./pages/auth/RoleProtectedRoute";
 import { ProfecoAdminProvider } from "./context/ProfecoAdminContext";
 import ProfecoDashboard from "./pages/profecoAdmins/ProfecoDashboard";
+import AdminPrecios from "./pages/storeAdmins/AdminPrecios";
 
 function App() {
   return (
@@ -80,6 +81,7 @@ function App() {
                 <Route path="/store-dashboard" element={<StoreAdminDashboard />} />
                 <Route path="/inconsistencias" element={<AdminInconsistencias />} />
                 <Route path="/comentarios" element={<AdminComentarios />} />
+                <Route path="/precios" element={<AdminPrecios />} />
               </Route>
             </Route>
 
