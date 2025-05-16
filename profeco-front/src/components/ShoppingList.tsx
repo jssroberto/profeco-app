@@ -118,7 +118,12 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ customerId }) => {
             return (
               <div
                 key={item.id}
-                className="bg-gray-50 rounded-xl border border-gray-200 p-4 relative group hover:shadow-lg transition-shadow duration-200"
+                className="bg-gray-50 rounded-xl border border-gray-200 p-4 relative group hover:shadow-lg transition-shadow duration-200 cursor-pointer hover:bg-gray-100"
+                onClick={() => window.location.href = `/productos/${item.id}`}
+                role="button"
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = `/productos/${item.id}`; }}
+                style={{ outline: 'none' }}
               >
                 <div className="flex flex-col gap-4">
                   {/* Producto: Imagen y detalles */}
@@ -194,7 +199,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ customerId }) => {
 
                 {/* Botón de eliminar */}
                 <button
-                  onClick={() => handleRemoveFromList(item.id)}
+                  onClick={e => { e.stopPropagation(); handleRemoveFromList(item.id); }}
                   className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 rounded-full hover:bg-white transition-colors"
                   title="Eliminar de la lista"
                 >
