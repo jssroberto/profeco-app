@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Edit3, Trash2 } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import api from "../../api/axiosConfig"; // Import the Axios instance
 import { useAuth } from "../../context/AuthContext";
@@ -10,6 +10,13 @@ interface ApiProduct {
   name: string;
   imageUrl?: string; // Assuming imageUrl can be optional
   // Add other product properties if available from the API
+}
+
+// Define a type for products to be listed in the "Add Product" form dropdown
+interface SelectableProduct {
+  id: string;
+  name: string;
+  // Add other fields if needed for display, e.g., brandName
 }
 
 // Define a type for API error responses
@@ -48,15 +55,32 @@ const AdminPrecios: React.FC = () => {
   const [products, setProducts] = useState<ProductDisplayInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth(); // Token is now implicitly handled by axios interceptor, but can be kept for conditional rendering if needed before API calls
+  const { token } = useAuth(); 
 
-  // Form states
-  const [showForm, setShowForm] = useState(false);
-  const [newProductId, setNewProductId] = useState("");
+  // Form states for adding a product
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState("");
   const [newPrice, setNewPrice] = useState("");
-  const [formLoading, setFormLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [formSuccess, setFormSuccess] = useState<string | null>(null);
+  const [formLoading, setFormLoading] = useState(false); // For add form
+  const [formError, setFormError] = useState<string | null>(null); // For add form
+  const [formSuccess, setFormSuccess] = useState<string | null>(null); // For add form
+
+  // State for selectable products in the add form
+  const [selectableProducts, setSelectableProducts] = useState<SelectableProduct[]>([]);
+  const [selectableProductsLoading, setSelectableProductsLoading] = useState<boolean>(false);
+  const [selectableProductsError, setSelectableProductsError] = useState<string | null>(null);
+
+  // State for Edit Product Dialog
+  const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
+  const [editingProduct, setEditingProduct] = useState<ProductDisplayInfo | null>(null);
+  const [editFormPrice, setEditFormPrice] = useState<string>("");
+  const [editFormOfferPrice, setEditFormOfferPrice] = useState<string>("");
+  const [editFormOfferStartDate, setEditFormOfferStartDate] = useState<string>("");
+  const [editFormOfferEndDate, setEditFormOfferEndDate] = useState<string>("");
+  const [editFormLoading, setEditFormLoading] = useState<boolean>(false);
+  const [editFormError, setEditFormError] = useState<string | null>(null);
+  const [editFormSuccess, setEditFormSuccess] = useState<string | null>(null);
+
 
   const isOfferActive = (
     offerPrice?: number | null,
@@ -155,6 +179,34 @@ const AdminPrecios: React.FC = () => {
     }
   }, [token, fetchProducts]);
 
+  const fetchSelectableProducts = async () => {
+    setSelectableProductsLoading(true);
+    setSelectableProductsError(null);
+    try {
+      const response = await api.get<SelectableProduct[]>("/products"); // Assuming this is the correct endpoint
+      setSelectableProducts(response.data);
+      if (response.data.length > 0) {
+        setSelectedProductId(response.data[0].id); // Pre-select the first product
+      } else {
+        setSelectedProductId(""); // No products to select
+      }
+    } catch (err) {
+      console.error("Error fetching selectable products:", err);
+      const errorMessage = (err as { response?: { data?: ApiError }; message?: string })?.response?.data?.message || (err as Error)?.message || "Error al cargar lista de productos";
+      setSelectableProductsError(errorMessage);
+      setSelectableProducts([]);
+    } finally {
+      setSelectableProductsLoading(false);
+    }
+  };
+
+  // Effect to fetch selectable products when the add form is shown
+  useEffect(() => {
+    if (showAddForm && token) { // Changed from showForm
+      fetchSelectableProducts();
+    }
+  }, [showAddForm, token]); // Changed from showForm
+
   const handleDeleteProduct = async (storeProductId: string) => {
     if (!window.confirm("¿Seguro que deseas eliminar este producto de la tienda?")) return;
     try {
@@ -168,14 +220,115 @@ const AdminPrecios: React.FC = () => {
     }
   };
 
+  const handleOpenEditDialog = (product: ProductDisplayInfo) => {
+    setEditingProduct(product);
+    setEditFormPrice(product.originalPrice.toString());
+    setEditFormOfferPrice(product.offerPrice?.toString() ?? "");
+    setEditFormOfferStartDate(product.offerStartDate ? new Date(product.offerStartDate).toISOString().split('T')[0] : "");
+    setEditFormOfferEndDate(product.offerEndDate ? new Date(product.offerEndDate).toISOString().split('T')[0] : "");
+    setEditFormError(null);
+    setEditFormSuccess(null);
+    setShowEditDialog(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditingProduct(null);
+    setShowEditDialog(false);
+    setEditFormError(null);
+    setEditFormSuccess(null);
+  };
+
+  const handleSaveChanges = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+
+    setEditFormLoading(true);
+    setEditFormError(null);
+    setEditFormSuccess(null);
+
+    const priceValue = parseFloat(editFormPrice);
+    if (isNaN(priceValue) || priceValue < 0) {
+      setEditFormError("El precio debe ser un número válido y no negativo.");
+      setEditFormLoading(false);
+      return;
+    }
+
+    let offerPriceValue: number | null = null;
+    if (editFormOfferPrice.trim() !== "") {
+      offerPriceValue = parseFloat(editFormOfferPrice);
+      if (isNaN(offerPriceValue) || offerPriceValue < 0) {
+        setEditFormError("El precio de oferta debe ser un número válido y no negativo.");
+        setEditFormLoading(false);
+        return;
+      }
+      if (offerPriceValue >= priceValue) {
+        setEditFormError("El precio de oferta debe ser menor que el precio original.");
+        setEditFormLoading(false);
+        return;
+      }
+    }
+
+    if ((editFormOfferStartDate && !editFormOfferEndDate) || (!editFormOfferStartDate && editFormOfferEndDate)) {
+      setEditFormError("Debe especificar tanto la fecha de inicio como la de fin de la oferta, o ninguna.");
+      setEditFormLoading(false);
+      return;
+    }
+
+    if (editFormOfferStartDate && editFormOfferEndDate && new Date(editFormOfferEndDate) < new Date(editFormOfferStartDate)) {
+      setEditFormError("La fecha de fin de la oferta no puede ser anterior a la fecha de inicio.");
+      setEditFormLoading(false);
+      return;
+    }
+    
+    // If offer dates are provided, offer price must also be provided
+    if ((editFormOfferStartDate || editFormOfferEndDate) && offerPriceValue === null) {
+        setEditFormError("Si establece fechas de oferta, también debe ingresar un precio de oferta.");
+        setEditFormLoading(false);
+        return;
+    }
+
+    // If offer price is provided, dates must also be provided
+    if (offerPriceValue !== null && (!editFormOfferStartDate || !editFormOfferEndDate)) {
+        setEditFormError("Si establece un precio de oferta, también debe ingresar las fechas de inicio y fin de la oferta.");
+        setEditFormLoading(false);
+        return;
+    }
+
+
+    const payload = {
+      price: priceValue,
+      offerPrice: offerPriceValue,
+      offerStartDate: editFormOfferStartDate || null,
+      offerEndDate: editFormOfferEndDate || null,
+      productId: editingProduct.productId, 
+      storeId: store?.id,
+    };
+
+    try {
+        console.log("Payload for update:", payload);
+      await api.put(`/store-products/by-product/${editingProduct.storeProductId}`, payload);
+      setEditFormSuccess("Producto actualizado correctamente.");
+      fetchProducts(); // Refresh the list
+      setTimeout(() => { // Close dialog after a short delay to show success message
+        handleCloseEditDialog();
+      }, 1500);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      const errorMessage = (error as { response?: { data?: ApiError }; message?: string })?.response?.data?.message || (error as Error)?.message || "No se pudo actualizar el producto";
+      setEditFormError(errorMessage);
+    } finally {
+      setEditFormLoading(false);
+    }
+  };
+
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
     setFormError(null);
     setFormSuccess(null);
 
-    if (!newProductId.trim() || !newPrice.trim()) {
-        setFormError("El ID del producto y el precio son obligatorios.");
+    if (!selectedProductId.trim() || !newPrice.trim()) { // Changed from newProductId
+        setFormError("Debe seleccionar un producto y especificar un precio.");
         setFormLoading(false);
         return;
     }
@@ -193,13 +346,13 @@ const AdminPrecios: React.FC = () => {
       // When adding a product, it's added with its regular price. Offers are managed separately or not set initially.
       await api.post("/store-products", {
         price: priceValue, // This corresponds to originalPrice
-        productId: newProductId,
+        productId: selectedProductId, // Changed from newProductId
         storeId: store?.id, // Ensure storeId is included if your backend /store-prodaucts POST endpoint expects it
       });
       setFormSuccess("Producto agregado correctamente");
-      setNewProductId("");
+      setSelectedProductId(selectableProducts.length > 0 ? selectableProducts[0].id : ""); // Reset selection
       setNewPrice("");
-      setShowForm(false);
+      setShowAddForm(false); // Changed from setShowForm
       fetchProducts(); // Refresh the list of products
     } catch (error) {
       console.error("Error adding product:", error);
@@ -233,7 +386,7 @@ const AdminPrecios: React.FC = () => {
                   Oferta
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Operación
+                  Acciones
                 </th>
               </tr>
             </thead>
@@ -273,13 +426,20 @@ const AdminPrecios: React.FC = () => {
                       "-"
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                      onClick={() => handleOpenEditDialog(prod)} 
+                      className="text-indigo-600 hover:text-indigo-900 p-3 rounded-md transition cursor-pointer mr-3"
+                      title="Editar producto"
+                    >
+                      <Edit3 className="w-6 h-6" />
+                    </button>
                     <button
                       onClick={() => handleDeleteProduct(prod.storeProductId)}
-                      className="text-red-600 hover:text-red-800 p-2 rounded transition cursor-pointer"
+                      className="text-red-600 hover:text-red-800 p-3 rounded-md transition cursor-pointer"
                       title="Eliminar producto"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-6 h-6" />
                     </button>
                   </td>
                 </tr>
@@ -289,53 +449,66 @@ const AdminPrecios: React.FC = () => {
 
           <button
             className="mb-4 px-6 py-2 bg-[#681837] text-white cursor-pointer rounded-lg hover:bg-[#561429] transition"
-            onClick={() => setShowForm((v) => !v)}
+            onClick={() => setShowAddForm((v) => !v)} // Changed from setShowForm
           >
-            {showForm ? "Cancelar" : "Agregar producto"}
+            {showAddForm ? "Cancelar" : "Agregar producto"} {/* Changed from showForm */}
           </button>
 
-          {showForm && (
+          {showAddForm && ( // Changed from showForm
             <form
               onSubmit={handleAddProduct}
               className="bg-white rounded-xl shadow-md border border-gray-200 p-6 max-w-md flex flex-col gap-4"
             >
-              <label className="block text-gray-700 font-medium">
-                ID del producto:
-                <input
-                  type="text"
-                  value={newProductId}
-                  onChange={(e) => setNewProductId(e.target.value)}
-                  required
-                  disabled={formLoading}
-                  className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
-                  placeholder="ID del producto"
-                />
-              </label>
-              <label className="block text-gray-700 font-medium">
-                Precio:
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={newPrice}
-                  onChange={(e) => setNewPrice(e.target.value)}
-                  required
-                  disabled={formLoading}
-                  className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
-                  placeholder="Precio"
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={formLoading || !newProductId || !newPrice}
-                className={`w-full py-2 rounded-lg font-semibold transition-colors ${
-                  formLoading || !newProductId || !newPrice
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-[#681837] text-white hover:bg-[#561429] cursor-pointer"
-                }`}
-              >
-                {formLoading ? "Agregando..." : "Agregar"}
-              </button>
+              {selectableProductsLoading && <p>Cargando productos...</p>}
+              {selectableProductsError && <p style={{ color: "red" }}>{selectableProductsError}</p>}
+              {!selectableProductsLoading && !selectableProductsError && selectableProducts.length === 0 && (
+                <p className="text-sm text-gray-600">No hay productos disponibles para agregar o no se pudieron cargar.</p>
+              )}
+              {!selectableProductsLoading && !selectableProductsError && selectableProducts.length > 0 && (
+                <>
+                  <label className="block text-gray-700 font-medium">
+                    Producto:
+                    <select
+                      value={selectedProductId}
+                      onChange={(e) => setSelectedProductId(e.target.value)}
+                      required
+                      disabled={formLoading || selectableProductsLoading}
+                      className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
+                    >
+                      {selectableProducts.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block text-gray-700 font-medium">
+                    Precio:
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={newPrice}
+                      onChange={(e) => setNewPrice(e.target.value)}
+                      required
+                      disabled={formLoading}
+                      className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
+                      placeholder="Precio"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={formLoading || selectableProductsLoading || !selectedProductId || !newPrice}
+                    className={`w-full py-2 rounded-lg font-semibold transition-colors ${
+                      formLoading || selectableProductsLoading || !selectedProductId || !newPrice
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-[#681837] text-white hover:bg-[#561429] cursor-pointer"
+                    }`}
+                  >
+                    {formLoading ? "Agregando..." : "Agregar"}
+                  </button>
+                </>
+              )}
               {formError && (
                 <div className="text-red-500 text-sm text-center">{formError}</div>
               )}
@@ -343,6 +516,103 @@ const AdminPrecios: React.FC = () => {
                 <div className="text-green-600 text-sm text-center">{formSuccess}</div>
               )}
             </form>
+          )}
+
+          {/* Edit Product Dialog */}
+          {showEditDialog && editingProduct && (
+            <div 
+              className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center"
+            >
+              <form 
+                onSubmit={handleSaveChanges}
+                className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg flex flex-col gap-4" // Increased max-w-lg
+              >
+                <h2 className="text-xl font-semibold mb-2 text-center">Editar Producto: {editingProduct.name}</h2>
+                
+                {/* Price Field */}
+                <label className="block text-gray-700 font-medium">
+                  Precio Original:
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editFormPrice}
+                    onChange={(e) => setEditFormPrice(e.target.value)}
+                    required
+                    disabled={editFormLoading}
+                    className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
+                    placeholder="Precio Original"
+                  />
+                </label>
+
+                {/* Offer Price Field */}
+                <label className="block text-gray-700 font-medium">
+                  Precio de Oferta (opcional):
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editFormOfferPrice}
+                    onChange={(e) => setEditFormOfferPrice(e.target.value)}
+                    disabled={editFormLoading}
+                    className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
+                    placeholder="Precio de Oferta"
+                  />
+                </label>
+
+                {/* Offer Start Date Field */}
+                <label className="block text-gray-700 font-medium">
+                  Inicio de Oferta (opcional):
+                  <input
+                    type="date"
+                    value={editFormOfferStartDate}
+                    onChange={(e) => setEditFormOfferStartDate(e.target.value)}
+                    disabled={editFormLoading}
+                    className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
+                  />
+                </label>
+
+                {/* Offer End Date Field */}
+                <label className="block text-gray-700 font-medium">
+                  Fin de Oferta (opcional):
+                  <input
+                    type="date"
+                    value={editFormOfferEndDate}
+                    onChange={(e) => setEditFormOfferEndDate(e.target.value)}
+                    disabled={editFormLoading}
+                    className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
+                    min={editFormOfferStartDate} // Ensure end date is not before start date
+                  />
+                </label>
+                
+                {editFormError && (
+                  <div className="text-red-500 text-sm text-center py-2">{editFormError}</div>
+                )}
+                {editFormSuccess && (
+                  <div className="text-green-600 text-sm text-center py-2">{editFormSuccess}</div>
+                )}
+
+                <div className="mt-4 flex justify-end space-x-3">
+                  <button 
+                    type="button" // Important: type="button" to prevent form submission
+                    onClick={handleCloseEditDialog}
+                    disabled={editFormLoading}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={editFormLoading || !editFormPrice}
+                    className={`px-4 py-2 text-sm font-medium text-white bg-[#681837] hover:bg-[#561429] rounded-md transition ${
+                      editFormLoading || !editFormPrice ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {editFormLoading ? "Guardando..." : "Guardar Cambios"}
+                  </button>
+                </div>
+              </form>
+            </div>
           )}
         </>
       )}

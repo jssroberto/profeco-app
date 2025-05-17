@@ -15,19 +15,19 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StoreOfferRequest {
-
-    @NotNull(message = "Product ID is required")
-    private UUID productId;
-
+    
     @Positive
     @NotNull(message = "Offer price is required")
     private BigDecimal offerPrice;
-
+    
     @NotNull(message = "Offer start date is required")
     private LocalDate offerStartDate;
-
+    
     @NotNull(message = "Offer end date is required")
     private LocalDate offerEndDate;
-
+    
+    @NotNull(message = "Product ID is required")
+    private UUID productId;
+    
 }
 

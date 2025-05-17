@@ -5,17 +5,16 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import com.itson.profeco.api.dto.response.NewOfferEventPayload;
-import com.itson.profeco.config.RabbitConfig;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.itson.profeco.api.dto.request.StoreOfferRequest;
 import com.itson.profeco.api.dto.request.StoreProductRequest;
+import com.itson.profeco.api.dto.response.NewOfferEventPayload;
 import com.itson.profeco.api.dto.response.StoreOfferResponse;
 import com.itson.profeco.api.dto.response.StoreProductResponse;
+import com.itson.profeco.config.RabbitConfig;
 import com.itson.profeco.exceptions.OperationNotAllowedException;
 import com.itson.profeco.exceptions.ResourceNotFoundException;
 import com.itson.profeco.mapper.StoreProductMapper;
@@ -41,9 +40,9 @@ public class StoreProductService {
     public StoreProductResponse createStoreProduct(StoreProductRequest request) {
         Store store = storeAdminService.getAuthenticatedStoreAdminStore();
 
-        Product product = productRepository.findById(request.getProduct())
+        Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Product not found with ID: " + request.getProduct()));
+                        "Product not found with ID: " + request.getProductId()));
         List<StoreProduct> existingEntries =
                 storeProductRepository.findByStore_IdAndProduct_Id(store.getId(), product.getId());
         if (!existingEntries.isEmpty()) {
@@ -68,11 +67,11 @@ public class StoreProductService {
             StoreProductRequest request) {
         Store currentUserStore = storeAdminService.getAuthenticatedStoreAdminStore();
 
-        if (request.getProduct() == null) {
+        if (request.getProductId() == null) {
             throw new IllegalArgumentException(
                     "Product ID must be provided in the request to identify the store product to update.");
         }
-        UUID targetProductId = request.getProduct();
+        UUID targetProductId = request.getProductId();
 
         StoreProduct existingProduct = storeProductRepository
                 .findByStore_IdAndProduct_Id(currentUserStore.getId(), targetProductId).stream()
@@ -87,8 +86,8 @@ public class StoreProductService {
             existingProduct.setPrice(request.getPrice());
         }
 
-        if (existingProduct.getPrice().floatValue() < existingProduct.getOfferPrice()
-                .floatValue()) {
+        if (existingProduct.getOfferPrice() != null && existingProduct.getPrice()
+                .floatValue() < existingProduct.getOfferPrice().floatValue()) {
             existingProduct.setOfferPrice(null);
             existingProduct.setOfferStartDate(null);
             existingProduct.setOfferEndDate(null);
@@ -129,46 +128,42 @@ public class StoreProductService {
     }
 
     @Transactional
-    public StoreOfferResponse applyOrUpdateOffer(UUID storeProductId, StoreOfferRequest request) {
+    public StoreOfferResponse applyOrUpdateOffer(StoreOfferRequest request) {
         validateOfferDates(request.getOfferStartDate(), request.getOfferEndDate());
-        StoreProduct existingProduct = findStoreProductEntityById(storeProductId);
-        Store currentUserStore = storeAdminService.getAuthenticatedStoreAdminStore();
 
-        if (!existingProduct.getStore().getId().equals(currentUserStore.getId())) {
-            throw new OperationNotAllowedException(
-                    "STORE_ADMIN can only manage offers for products in their own store.");
-        }
+        Store currentUserStore = storeAdminService.getAuthenticatedStoreAdminStore();
+        // Find StoreProduct using productId from request and current user's store
+        StoreProduct existingProduct = storeProductRepository
+                .findByStore_IdAndProduct_Id(currentUserStore.getId(), request.getProductId())
+                .stream().findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "StoreProduct not found for Product ID: " + request.getProductId()
+                                + " in the current admin's store (ID: " + currentUserStore.getId()
+                                + "). Cannot apply offer."));
 
         storeProductMapper.updateOfferFieldsInStoreProduct(existingProduct, request);
         StoreProduct updatedProductWithOffer = storeProductRepository.save(existingProduct);
 
-
-        if (updatedProductWithOffer.getOfferPrice() != null &&
-                updatedProductWithOffer.getOfferStartDate() != null &&
-                updatedProductWithOffer.getOfferEndDate() != null) {
+        if (updatedProductWithOffer.getOfferPrice() != null
+                && updatedProductWithOffer.getOfferStartDate() != null
+                && updatedProductWithOffer.getOfferEndDate() != null) {
 
             String offerDescription = String.format("¡Oferta en %s por solo $%.2f!",
                     updatedProductWithOffer.getProduct().getName(),
                     updatedProductWithOffer.getOfferPrice());
 
             NewOfferEventPayload offerEvent = new NewOfferEventPayload(
-                    updatedProductWithOffer.getId(),
-                    updatedProductWithOffer.getStore().getId(),
+                    updatedProductWithOffer.getId(), updatedProductWithOffer.getStore().getId(),
                     updatedProductWithOffer.getStore().getName(),
                     updatedProductWithOffer.getProduct().getId(),
                     updatedProductWithOffer.getProduct().getName(),
                     updatedProductWithOffer.getOfferPrice(),
                     updatedProductWithOffer.getOfferStartDate(),
-                    updatedProductWithOffer.getOfferEndDate(),
-                    offerDescription
-            );
+                    updatedProductWithOffer.getOfferEndDate(), offerDescription);
 
-
-            rabbitTemplate.convertAndSend(
-                    RabbitConfig.EXCHANGE_NEW_OFFERS_FANOUT, // El exchange fanout
-                    "",
-                    offerEvent
-            );
+            rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NEW_OFFERS_FANOUT, // El exchange
+                                                                                   // fanout
+                    "", offerEvent);
 
         }
         return storeProductMapper.entityToOfferResponse(updatedProductWithOffer);
@@ -191,8 +186,9 @@ public class StoreProductService {
 
     @Transactional(readOnly = true)
     public List<StoreOfferResponse> getProductsWithAnyOffer() {
-        return storeProductRepository.findAllByOfferPriceNotNullAndOfferDateActive(LocalDate.now()).stream()
-                .map(storeProductMapper::entityToOfferResponse).collect(Collectors.toList());
+        return storeProductRepository.findAllByOfferPriceNotNullAndOfferDateActive(LocalDate.now())
+                .stream().map(storeProductMapper::entityToOfferResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -275,15 +271,14 @@ public class StoreProductService {
     @Transactional(readOnly = true)
     public List<StoreProductResponse> getAllStoreProducts() {
         return storeProductRepository.findAll().stream()
-                .map(storeProductMapper::entityToProductResponse)
-                .collect(Collectors.toList());
+                .map(storeProductMapper::entityToProductResponse).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<StoreOfferResponse> getAllStoreProductsByStoreId(UUID storeId) {
-        List<StoreProduct> storeProducts = storeProductRepository.findByStore_IdAndOfferPriceIsNotNull(storeId);
-        return storeProducts.stream()
-                .map(storeProductMapper::entityToOfferResponse)
+        List<StoreProduct> storeProducts =
+                storeProductRepository.findByStore_IdAndOfferPriceIsNotNull(storeId);
+        return storeProducts.stream().map(storeProductMapper::entityToOfferResponse)
                 .collect(Collectors.toList());
     }
 

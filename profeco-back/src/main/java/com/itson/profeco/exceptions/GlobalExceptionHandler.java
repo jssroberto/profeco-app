@@ -95,6 +95,12 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(e.getMessage());
     }
 
+    @ExceptionHandler(NullPointerException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleNullPointerException(NullPointerException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
     // @ExceptionHandler(RuntimeException.class)
     // @ResponseStatus(HttpStatus.BAD_REQUEST)
     // public ErrorResponse handleRuntimeException(RuntimeException e) {

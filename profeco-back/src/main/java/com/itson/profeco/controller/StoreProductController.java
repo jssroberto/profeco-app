@@ -182,7 +182,7 @@ public class StoreProductController {
     }
 
     @Operation(summary = "Update store product by Product ID in current store",
-            description = "Updates a store product's price, identified by product ID and the admin's store.")
+            description = "Updates a store product's price and optional offer details.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Store product updated successfully",
                     content = @Content(mediaType = "application/json",
