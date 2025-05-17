@@ -18,6 +18,7 @@ interface StoreProductWithOffer {
   id: string; // This is the store-product ID
   storeId: string;
   storeName: string;
+  storeLocation: string;
   storeProductId: string; // This is effectively sp.id from the raw data
   price: number;
   offer?: {
@@ -59,13 +60,13 @@ const BaseProductInfo = () => {
   const [adding, setAdding] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchProductAndStores = async () => {
       if (!id || !token) {
         setLoading(false);
         return;
       }
+
       try {
         setLoading(true);
         // Get base product info
@@ -75,91 +76,105 @@ const BaseProductInfo = () => {
         );
         setProduct(productRes.data);
 
-        // Get all store-products for this product name
-        // productRes.data must be available here
+        // Get all store-products for this product name AND current offers
         if (!productRes.data || !productRes.data.name) {
-            throw new Error("Product data or name is missing after fetch.");
+          throw new Error("Product data or name is missing after fetch.");
         }
-        const storeProductsRes = await axios.get(
-          `http://localhost:8080/api/v1/store-products/by-product-name?name=${encodeURIComponent(productRes.data.name)}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
 
         const today = new Date().toISOString().split("T")[0];
-        const storeProductsRaw: StoreProduct[] = storeProductsRes.data;
-        const storeProductsWithStoreAndOffer: StoreProductWithOffer[] = await Promise.all(
+        
+        // Hacer las dos llamadas en paralelo
+        const [storeProductsRes, offersResponse] = await Promise.all([
+          axios.get(
+            `http://localhost:8080/api/v1/store-products/by-product-name?name=${encodeURIComponent(productRes.data.name)}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          ),
+          axios.get(
+            `http://localhost:8080/api/v1/store-product-offers/current-for-product/${id}?currentDate=${today}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+        ]);
+
+        const storeProductsRaw: StoreProduct[] = storeProductsRes.data || [];
+        const offersRaw = offersResponse.data as StoreProductOffer[] || [];
+        
+        // Create a Map to store all stores and their products
+        const storeMap = new Map<string, StoreProductWithOffer>();
+
+        // Process store products first
+        await Promise.all(
           storeProductsRaw.map(async (sp) => {
-            const storeRes = await axios.get(
-              `http://localhost:8080/api/v1/stores/${sp.storeId}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-            
-            let offerData: StoreProductWithOffer["offer"] = null;
             try {
-              const offerRes = await axios.get(
-                `http://localhost:8080/api/v1/store-product-offers/current-for-store-product/${sp.id}?currentDate=${today}`,
+              const storeRes = await axios.get(
+                `http://localhost:8080/api/v1/stores/${sp.storeId}`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
-              // API might return a single object or an array with one object
-              const currentOffer = Array.isArray(offerRes.data) ? offerRes.data[0] : offerRes.data;
-              if (currentOffer && typeof currentOffer.offerPrice === 'number') {
-                offerData = {
-                  offerPrice: currentOffer.offerPrice,
-                  offerStartDate: currentOffer.offerStartDate,
-                  offerEndDate: currentOffer.offerEndDate,
-                };
+
+              const existingStore = storeMap.get(sp.storeId);
+              if (!existingStore || existingStore.price > sp.price) {
+                storeMap.set(sp.storeId, {
+                  id: sp.id,
+                  storeId: sp.storeId,
+                  storeName: storeRes.data.name,
+                  storeLocation: storeRes.data.location,
+                  storeProductId: sp.id,
+                  price: sp.price,
+                  offer: null
+                });
               }
-            } catch {
-              // No offer or error fetching offer
+            } catch (error) {
+              console.error('Error fetching store info:', error);
             }
+          })
+        );
 
-            return {
-              id: sp.id, // store-product ID
-              storeId: sp.storeId,
+        // Process offers and combine with store products
+        for (const offer of offersRaw) {
+          if (!offer.storeProduct || !offer.storeProduct.storeId) continue;
+
+          try {
+            const storeRes = await axios.get(
+              `http://localhost:8080/api/v1/stores/${offer.storeProduct.storeId}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const existingStore = storeMap.get(offer.storeProduct.storeId);
+            const newStore = {
+              id: offer.storeProduct.id,
+              storeId: offer.storeProduct.storeId,
               storeName: storeRes.data.name,
-              storeProductId: sp.id, // store-product ID, same as id here
-              price: sp.price,
-              offer: offerData,
+              storeLocation: storeRes.data.location,
+              storeProductId: offer.storeProduct.id,
+              price: offer.storeProduct.price,
+              offer: {
+                offerPrice: offer.offerPrice,
+                offerStartDate: offer.offerStartDate,
+                offerEndDate: offer.offerEndDate
+              }
             };
-          })
-        );
-        setStoreProducts(storeProductsWithStoreAndOffer);
 
-        // Obtener ofertas actuales para este producto (base product ID) y agregar el nombre de la tienda
-        const offersResponse = await axios.get(
-          `http://localhost:8080/api/v1/store-product-offers/current-for-product/${id}?currentDate=${today}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+            // Replace existing store only if the offer price is better
+            if (!existingStore || (offer.offerPrice < (existingStore.offer?.offerPrice ?? existingStore.price))) {
+              storeMap.set(offer.storeProduct.storeId, newStore);
+            }
+          } catch (error) {
+            console.error('Error processing offer:', error);
+          }
+        }
 
-        const offersWithStoreName = await Promise.all(
-          (offersResponse.data as StoreProductOffer[]).map(async (offer: StoreProductOffer) => {
-            // Ensure storeProduct and storeId exist before fetching
-            if (!offer.storeProduct || !offer.storeProduct.storeId) {
-              return { ...offer, storeProduct: { ...offer.storeProduct, storeName: "Unknown Store" } };
-            }
-            try {
-                const storeRes = await axios.get(
-                `http://localhost:8080/api/v1/stores/${offer.storeProduct.storeId}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-                );
-                return {
-                ...offer,
-                storeProduct: {
-                    ...offer.storeProduct,
-                    storeName: storeRes.data.name
-                }
-                };
-            } catch (storeError) {
-                console.error(`Failed to fetch store name for store ID ${offer.storeProduct.storeId}:`, storeError);
-                return { ...offer, storeProduct: { ...offer.storeProduct, storeName: "Error Fetching Store Name" } };
-            }
-          })
-        );
+        // Convert to array and sort by best price (considering offers)
+        const sortedStoreProducts = Array.from(storeMap.values()).sort((a, b) => {
+          const priceA = a.offer?.offerPrice ?? a.price;
+          const priceB = b.offer?.offerPrice ?? b.price;
+          return priceA - priceB;
+        });
+
+        setStoreProducts(sortedStoreProducts);
+        setCurrentOffers(offersRaw);
         
-        setCurrentOffers(offersWithStoreName);
       } catch (error) {
         console.error("Error fetching data:", error);
-        setProduct(null); // Clear product on error
+        setProduct(null);
         setStoreProducts([]);
         setCurrentOffers([]);
       } finally {
@@ -230,34 +245,50 @@ const BaseProductInfo = () => {
             </h2>
             <div className="grid gap-4">
               {storeProducts.length === 0 && (
-                <div>No disponible en ningún supermercado actualmente.</div>
+                <div className="text-gray-600">
+                  <p>No disponible en ningún supermercado actualmente.</p>
+                  <p className="text-sm mt-2">ID del producto: {id}</p>
+                  <p className="text-sm">Nombre del producto: {product?.name}</p>
+                </div>
               )}
               {storeProducts.map((sp) => (
-                <Card key={sp.storeProductId} className="p-4 flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">{sp.storeName}</div>
-                    <div className="text-sm text-gray-500">ID tienda: {sp.storeId}</div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {/* Displaying offer or regular price */}
-                     {sp.offer ? (
-                      <div className="flex flex-col items-end text-right">
-                        <span className="font-bold text-lg text-green-700">
-                          ${sp.offer.offerPrice.toFixed(2)}
-                        </span>
-                        <span className="text-xs text-gray-400 line-through">
-                          ${sp.price.toFixed(2)}
-                        </span>
+                <Card key={sp.storeProductId} className="p-4">
+                  <div className="flex flex-col sm:flex-row justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium text-lg">{sp.storeName}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        <div><span className="text-gray-500">Ubicación:</span> {sp.storeLocation}</div>
                       </div>
-                    ) : (
-                      <span className="font-bold text-lg">${sp.price.toFixed(2)}</span>
-                    )}
-                    {/* Link to view product in store or offer details */}
-                    <Link to={`/negocios/${sp.storeId}/productos/${sp.storeProductId}`}>
-                      <Button variant="outline">
-                        {sp.offer ? "Ver oferta en tienda" : "Ver en tienda"}
-                      </Button>
-                    </Link>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-4 sm:mt-0">
+                      <div className="flex flex-col items-end">
+                        {sp.offer ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-lg text-green-700">
+                                ${sp.offer.offerPrice.toFixed(2)}
+                              </span>
+                              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                ¡Oferta!
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-400 line-through">
+                              ${sp.price.toFixed(2)}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(sp.offer.offerStartDate).toLocaleDateString()} - {new Date(sp.offer.offerEndDate).toLocaleDateString()}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="font-bold text-lg">${sp.price.toFixed(2)}</span>
+                        )}
+                      </div>
+                      <Link to={`/negocios/${sp.storeId}/productos/${sp.storeProductId}`}>
+                        <Button variant="outline">
+                          {sp.offer ? "Ver oferta en tienda" : "Ver en tienda"}
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </Card>
               ))}

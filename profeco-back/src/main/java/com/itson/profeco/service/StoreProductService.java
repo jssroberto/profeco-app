@@ -125,12 +125,26 @@ public class StoreProductService {
         return storeProductMapper.entityToOfferResponse(storeProduct);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @Transactional
     public StoreOfferResponse applyOrUpdateOffer(StoreOfferRequest request) {
         validateOfferDates(request.getOfferStartDate(), request.getOfferEndDate());
 
         Store currentUserStore = storeAdminService.getAuthenticatedStoreAdminStore();
-        // Find StoreProduct using productId from request and current user's store
         StoreProduct existingProduct = storeProductRepository
                 .findByStore_IdAndProduct_Id(currentUserStore.getId(), request.getProductId())
                 .stream().findFirst()
@@ -166,6 +180,19 @@ public class StoreProductService {
         }
         return storeProductMapper.entityToOfferResponse(updatedProductWithOffer);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Transactional
     public StoreOfferResponse removeOffer(UUID storeProductId) {
