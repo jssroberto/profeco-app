@@ -1,52 +1,45 @@
 import { Edit3, Trash2 } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-import api from "../../api/axiosConfig"; // Import the Axios instance
+import api from "../../api/axiosConfig";
 import { useAuth } from "../../context/AuthContext";
 import { useStoreAdmin } from "../../context/StoreAdminContext";
 
-// Define a type for the product data returned by the product details API
 interface ApiProduct {
   id: string;
   name: string;
-  imageUrl?: string; // Assuming imageUrl can be optional
-  // Add other product properties if available from the API
+  imageUrl?: string;
 }
 
-// Define a type for products to be listed in the "Add Product" form dropdown
 interface SelectableProduct {
   id: string;
   name: string;
-  // Add other fields if needed for display, e.g., brandName
 }
 
-// Define a type for API error responses
 interface ApiError {
     message: string;
-    // Add other common error properties if available
 }
 
-// Interface for the data from /store-products/by-store/${store.id}
 interface StoreProductResponse {
-  id: string; // ID of the store-product association (e.g., "e5fb1d68-...")
-  price: number; // This is the original/base price
+  id: string;
+  price: number;
   offerPrice?: number | null;
   offerStartDate?: string | null;
   offerEndDate?: string | null;
   storeId: string;
-  productId: string; // ID of the actual product (e.g., "d4ea0c57-...")
+  productId: string;
 }
 
-// Interface for the combined product information used in the component's state
+
 interface ProductDisplayInfo {
-  storeProductId: string; // Corresponds to StoreProductResponse.id, used for keys and delete
-  productId: string;      // Corresponds to StoreProductResponse.productId, used for fetching details
+  storeProductId: string;
+  productId: string;     
   name: string;
   image: string;
   originalPrice: number;
   offerPrice?: number | null;
   offerStartDate?: string | null;
   offerEndDate?: string | null;
-  effectivePrice: number; // The price to actually display and use
+  effectivePrice: number;
   isOnOffer: boolean;
 }
 
@@ -57,20 +50,17 @@ const AdminPrecios: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { token } = useAuth(); 
 
-  // Form states for adding a product
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [newPrice, setNewPrice] = useState("");
-  const [formLoading, setFormLoading] = useState(false); // For add form
-  const [formError, setFormError] = useState<string | null>(null); // For add form
-  const [formSuccess, setFormSuccess] = useState<string | null>(null); // For add form
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
-  // State for selectable products in the add form
   const [selectableProducts, setSelectableProducts] = useState<SelectableProduct[]>([]);
   const [selectableProductsLoading, setSelectableProductsLoading] = useState<boolean>(false);
   const [selectableProductsError, setSelectableProductsError] = useState<string | null>(null);
 
-  // State for Edit Product Dialog
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<ProductDisplayInfo | null>(null);
   const [editFormPrice, setEditFormPrice] = useState<string>("");
@@ -93,7 +83,6 @@ const AdminPrecios: React.FC = () => {
     const now = new Date();
     const offerStart = new Date(startDate);
     const offerEnd = new Date(endDate);
-    // Set time to end of day for offerEnd for inclusive check
     offerEnd.setHours(23, 59, 59, 999);
     return now >= offerStart && now <= offerEnd;
   };
@@ -127,8 +116,8 @@ const AdminPrecios: React.FC = () => {
             image: product.imageUrl
               ? product.imageUrl.startsWith("http")
                 ? product.imageUrl
-                : `http://${product.imageUrl}` // Consider a more robust way to handle image URLs if needed
-              : "", // Default or placeholder image
+                : `http://${product.imageUrl}`
+              : "", 
             originalPrice: sp.price,
             offerPrice: sp.offerPrice,
             offerStartDate: sp.offerStartDate,
@@ -138,8 +127,6 @@ const AdminPrecios: React.FC = () => {
           };
         } catch (productFetchError) {
           console.error(`Error fetching product details for ${sp.productId}:`, productFetchError);
-          // Return a partial object or null, and filter out nulls later
-          // This ensures one failed product doesn't break the whole list
           const activeOffer = isOfferActive(sp.offerPrice, sp.offerStartDate, sp.offerEndDate);
           const effectivePrice = activeOffer && sp.offerPrice != null ? sp.offerPrice : sp.price;
           return {
@@ -167,10 +154,10 @@ const AdminPrecios: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [store?.id]); // Removed token from dependencies as Axios handles it
+  }, [store?.id]); 
 
   useEffect(() => {
-    if (token) { // Ensure token exists before trying to fetch, even if Axios handles it
+    if (token) {
         fetchProducts();
     } else {
         setLoading(false);
@@ -183,12 +170,12 @@ const AdminPrecios: React.FC = () => {
     setSelectableProductsLoading(true);
     setSelectableProductsError(null);
     try {
-      const response = await api.get<SelectableProduct[]>("/products"); // Assuming this is the correct endpoint
+      const response = await api.get<SelectableProduct[]>("/products");
       setSelectableProducts(response.data);
       if (response.data.length > 0) {
-        setSelectedProductId(response.data[0].id); // Pre-select the first product
+        setSelectedProductId(response.data[0].id);
       } else {
-        setSelectedProductId(""); // No products to select
+        setSelectedProductId("");
       }
     } catch (err) {
       console.error("Error fetching selectable products:", err);
@@ -200,19 +187,17 @@ const AdminPrecios: React.FC = () => {
     }
   };
 
-  // Effect to fetch selectable products when the add form is shown
   useEffect(() => {
-    if (showAddForm && token) { // Changed from showForm
+    if (showAddForm && token) {
       fetchSelectableProducts();
     }
-  }, [showAddForm, token]); // Changed from showForm
+  }, [showAddForm, token]);
 
   const handleDeleteProduct = async (storeProductId: string) => {
     if (!window.confirm("¿Seguro que deseas eliminar este producto de la tienda?")) return;
     try {
       await api.delete(`/store-products/${storeProductId}`);
       setProducts((prev) => prev.filter((p) => p.storeProductId !== storeProductId));
-      // Optionally, add a success message
     } catch (error) {
       console.error("Error deleting product:", error);
       const errorMessage = (error as { response?: { data?: ApiError }; message?: string })?.response?.data?.message || (error as Error)?.message || "Error al eliminar el producto";
@@ -246,70 +231,103 @@ const AdminPrecios: React.FC = () => {
     setEditFormError(null);
     setEditFormSuccess(null);
 
-    const priceValue = parseFloat(editFormPrice);
-    if (isNaN(priceValue) || priceValue < 0) {
+    const newParsedPrice = parseFloat(editFormPrice);
+    if (isNaN(newParsedPrice) || newParsedPrice < 0) {
       setEditFormError("El precio debe ser un número válido y no negativo.");
       setEditFormLoading(false);
       return;
     }
 
-    let offerPriceValue: number | null = null;
-    if (editFormOfferPrice.trim() !== "") {
-      offerPriceValue = parseFloat(editFormOfferPrice);
-      if (isNaN(offerPriceValue) || offerPriceValue < 0) {
+    const newParsedOfferPriceStr = editFormOfferPrice.trim();
+    let newParsedOfferPrice: number | null = null;
+    if (newParsedOfferPriceStr !== "") {
+      newParsedOfferPrice = parseFloat(newParsedOfferPriceStr);
+      if (isNaN(newParsedOfferPrice) || newParsedOfferPrice < 0) {
         setEditFormError("El precio de oferta debe ser un número válido y no negativo.");
         setEditFormLoading(false);
         return;
       }
-      if (offerPriceValue >= priceValue) {
+      if (newParsedOfferPrice >= newParsedPrice) {
         setEditFormError("El precio de oferta debe ser menor que el precio original.");
         setEditFormLoading(false);
         return;
       }
     }
 
-    if ((editFormOfferStartDate && !editFormOfferEndDate) || (!editFormOfferStartDate && editFormOfferEndDate)) {
+    const newOfferStartDate = editFormOfferStartDate.trim() === "" ? null : editFormOfferStartDate;
+    const newOfferEndDate = editFormOfferEndDate.trim() === "" ? null : editFormOfferEndDate;
+
+    if ((newOfferStartDate && !newOfferEndDate) || (!newOfferStartDate && newOfferEndDate)) {
       setEditFormError("Debe especificar tanto la fecha de inicio como la de fin de la oferta, o ninguna.");
       setEditFormLoading(false);
       return;
     }
-
-    if (editFormOfferStartDate && editFormOfferEndDate && new Date(editFormOfferEndDate) < new Date(editFormOfferStartDate)) {
+    if (newOfferStartDate && newOfferEndDate && new Date(newOfferEndDate) < new Date(newOfferStartDate)) {
       setEditFormError("La fecha de fin de la oferta no puede ser anterior a la fecha de inicio.");
       setEditFormLoading(false);
       return;
     }
-    
-    // If offer dates are provided, offer price must also be provided
-    if ((editFormOfferStartDate || editFormOfferEndDate) && offerPriceValue === null) {
+    if ((newOfferStartDate || newOfferEndDate) && newParsedOfferPrice === null) {
         setEditFormError("Si establece fechas de oferta, también debe ingresar un precio de oferta.");
         setEditFormLoading(false);
         return;
     }
-
-    // If offer price is provided, dates must also be provided
-    if (offerPriceValue !== null && (!editFormOfferStartDate || !editFormOfferEndDate)) {
+    if (newParsedOfferPrice !== null && (!newOfferStartDate || !newOfferEndDate)) {
         setEditFormError("Si establece un precio de oferta, también debe ingresar las fechas de inicio y fin de la oferta.");
         setEditFormLoading(false);
         return;
     }
 
+    const { 
+        productId, 
+        originalPrice: initialOriginalPrice, 
+        offerPrice: initialOfferPrice, 
+        offerStartDate: initialOfferStartDateISO, 
+        offerEndDate: initialOfferEndDateISO 
+    } = editingProduct;
 
-    const payload = {
-      price: priceValue,
-      offerPrice: offerPriceValue,
-      offerStartDate: editFormOfferStartDate || null,
-      offerEndDate: editFormOfferEndDate || null,
-      productId: editingProduct.productId, 
-      storeId: store?.id,
-    };
+    const initialFormattedOfferStartDate = initialOfferStartDateISO ? new Date(initialOfferStartDateISO).toISOString().split('T')[0] : null;
+    const initialFormattedOfferEndDate = initialOfferEndDateISO ? new Date(initialOfferEndDateISO).toISOString().split('T')[0] : null;
+    
+    const priceHasChanged = newParsedPrice !== initialOriginalPrice;
+    const offerHasChanged = 
+        newParsedOfferPrice !== initialOfferPrice ||
+        newOfferStartDate !== initialFormattedOfferStartDate ||
+        newOfferEndDate !== initialFormattedOfferEndDate;
+
+    if (!priceHasChanged && !offerHasChanged) {
+      setEditFormSuccess("No se detectaron cambios.");
+      setEditFormLoading(false);
+      return;
+    }
+
+    const apiPromises: Promise<any>[] = [];
+
+    if (priceHasChanged) {
+      const priceUpdatePayload = {
+        price: newParsedPrice,
+        productId: productId,
+      };
+      console.log("Calling Price API (/store-products/by-product) with payload:", priceUpdatePayload);
+      apiPromises.push(api.put('/store-products/by-product', priceUpdatePayload));
+    }
+
+    if (offerHasChanged) {
+      const offerUpdatePayload = {
+        offerPrice: newParsedOfferPrice,
+        offerStartDate: newOfferStartDate,
+        offerEndDate: newOfferEndDate,
+        productId: productId,
+      };
+      console.log("Calling Offer API (/store-product-offers/apply) with payload:", offerUpdatePayload);
+      apiPromises.push(api.post('/store-product-offers/apply', offerUpdatePayload));
+    }
 
     try {
-        console.log("Payload for update:", payload);
-      await api.put(`/store-products/by-product/${editingProduct.storeProductId}`, payload);
+      await Promise.all(apiPromises);
       setEditFormSuccess("Producto actualizado correctamente.");
-      fetchProducts(); // Refresh the list
-      setTimeout(() => { // Close dialog after a short delay to show success message
+      fetchProducts();
+      setTimeout(() => {
         handleCloseEditDialog();
       }, 1500);
     } catch (error) {
@@ -327,7 +345,7 @@ const AdminPrecios: React.FC = () => {
     setFormError(null);
     setFormSuccess(null);
 
-    if (!selectedProductId.trim() || !newPrice.trim()) { // Changed from newProductId
+    if (!selectedProductId.trim() || !newPrice.trim()) {
         setFormError("Debe seleccionar un producto y especificar un precio.");
         setFormLoading(false);
         return;
@@ -341,19 +359,16 @@ const AdminPrecios: React.FC = () => {
     }
 
     try {
-      // The storeId might need to be part of the payload, depending on your API
-      // Assuming the API infers storeId from the authenticated user or another source
-      // When adding a product, it's added with its regular price. Offers are managed separately or not set initially.
       await api.post("/store-products", {
-        price: priceValue, // This corresponds to originalPrice
-        productId: selectedProductId, // Changed from newProductId
-        storeId: store?.id, // Ensure storeId is included if your backend /store-prodaucts POST endpoint expects it
+        price: priceValue,
+        productId: selectedProductId,
+        storeId: store?.id, 
       });
       setFormSuccess("Producto agregado correctamente");
-      setSelectedProductId(selectableProducts.length > 0 ? selectableProducts[0].id : ""); // Reset selection
+      setSelectedProductId(selectableProducts.length > 0 ? selectableProducts[0].id : "");
       setNewPrice("");
-      setShowAddForm(false); // Changed from setShowForm
-      fetchProducts(); // Refresh the list of products
+      setShowAddForm(false);
+      fetchProducts();
     } catch (error) {
       console.error("Error adding product:", error);
       const errorMessage = (error as { response?: { data?: ApiError }; message?: string })?.response?.data?.message || (error as Error)?.message || "No se pudo agregar el producto";
@@ -449,12 +464,12 @@ const AdminPrecios: React.FC = () => {
 
           <button
             className="mb-4 px-6 py-2 bg-[#681837] text-white cursor-pointer rounded-lg hover:bg-[#561429] transition"
-            onClick={() => setShowAddForm((v) => !v)} // Changed from setShowForm
+            onClick={() => setShowAddForm((v) => !v)}
           >
-            {showAddForm ? "Cancelar" : "Agregar producto"} {/* Changed from showForm */}
+            {showAddForm ? "Cancelar" : "Agregar producto"}
           </button>
 
-          {showAddForm && ( // Changed from showForm
+          {showAddForm && (
             <form
               onSubmit={handleAddProduct}
               className="bg-white rounded-xl shadow-md border border-gray-200 p-6 max-w-md flex flex-col gap-4"
@@ -518,18 +533,16 @@ const AdminPrecios: React.FC = () => {
             </form>
           )}
 
-          {/* Edit Product Dialog */}
           {showEditDialog && editingProduct && (
             <div 
               className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center"
             >
               <form 
                 onSubmit={handleSaveChanges}
-                className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg flex flex-col gap-4" // Increased max-w-lg
+                className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg flex flex-col gap-4"
               >
                 <h2 className="text-xl font-semibold mb-2 text-center">Editar Producto: {editingProduct.name}</h2>
                 
-                {/* Price Field */}
                 <label className="block text-gray-700 font-medium">
                   Precio Original:
                   <input
@@ -545,7 +558,6 @@ const AdminPrecios: React.FC = () => {
                   />
                 </label>
 
-                {/* Offer Price Field */}
                 <label className="block text-gray-700 font-medium">
                   Precio de Oferta (opcional):
                   <input
@@ -560,7 +572,6 @@ const AdminPrecios: React.FC = () => {
                   />
                 </label>
 
-                {/* Offer Start Date Field */}
                 <label className="block text-gray-700 font-medium">
                   Inicio de Oferta (opcional):
                   <input
@@ -572,7 +583,6 @@ const AdminPrecios: React.FC = () => {
                   />
                 </label>
 
-                {/* Offer End Date Field */}
                 <label className="block text-gray-700 font-medium">
                   Fin de Oferta (opcional):
                   <input
@@ -581,7 +591,7 @@ const AdminPrecios: React.FC = () => {
                     onChange={(e) => setEditFormOfferEndDate(e.target.value)}
                     disabled={editFormLoading}
                     className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#681837] transition"
-                    min={editFormOfferStartDate} // Ensure end date is not before start date
+                    min={editFormOfferStartDate}
                   />
                 </label>
                 
@@ -594,7 +604,7 @@ const AdminPrecios: React.FC = () => {
 
                 <div className="mt-4 flex justify-end space-x-3">
                   <button 
-                    type="button" // Important: type="button" to prevent form submission
+                    type="button"
                     onClick={handleCloseEditDialog}
                     disabled={editFormLoading}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition disabled:opacity-50"

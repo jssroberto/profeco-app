@@ -46,9 +46,7 @@ public class StoreProductService {
         List<StoreProduct> existingEntries =
                 storeProductRepository.findByStore_IdAndProduct_Id(store.getId(), product.getId());
         if (!existingEntries.isEmpty()) {
-            throw new DataIntegrityViolationException("A product listing for product ID "
-                    + product.getId() + " already exists in store ID " + store.getId()
-                    + ". Use update instead.");
+            throw new DataIntegrityViolationException("Product already exists in store.");
         }
 
         StoreProduct storeProduct = storeProductMapper.productRequestToEntity(request);
