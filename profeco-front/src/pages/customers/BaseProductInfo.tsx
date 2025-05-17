@@ -283,9 +283,9 @@ const BaseProductInfo = () => {
                           <span className="font-bold text-lg">${sp.price.toFixed(2)}</span>
                         )}
                       </div>
-                      <Link to={`/negocios/${sp.storeId}/productos/${sp.storeProductId}`}>
+                      <Link to={`/negocios/${sp.storeId}`}>
                         <Button variant="outline">
-                          {sp.offer ? "Ver oferta en tienda" : "Ver en tienda"}
+                          Ver tienda
                         </Button>
                       </Link>
                     </div>
@@ -322,7 +322,7 @@ const BaseProductInfo = () => {
                           {Math.round((1 - offer.offerPrice / offer.storeProduct.price) * 100)}% OFF
                         </p>
                          <Link to={`/negocios/${offer.storeProduct.storeId}/productos/${offer.storeProduct.id}`} className="mt-2 inline-block">
-                            <Button variant="default">Ver en tienda</Button>
+                            <Button variant="default">Ver oferta en tienda</Button>
                          </Link>
                       </div>
                     </div>
