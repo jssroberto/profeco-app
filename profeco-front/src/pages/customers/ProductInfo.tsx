@@ -26,10 +26,18 @@ interface StoreProductOffer {
   };
 }
 
+interface StoreProduct {
+  id: string;
+  price: number;
+  storeId: string;
+  storeName: string;
+}
+
 const ProductInfo = () => {
   const { id } = useParams<{ id: string }>();
   const { token } = useAuth();
   const [product, setProduct] = useState<ProductInfo | null>(null);
+  const [availableStores, setAvailableStores] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
@@ -37,8 +45,12 @@ const ProductInfo = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!id || !token) return;
-
+      if (!id) return;
+      if (!token) {
+        setLoading(false);
+        setAddError("Debes iniciar sesión para ver esta información.");
+        return;
+      }
       try {
         setLoading(true);
         const productStoreResponse = await axios.get(
@@ -86,9 +98,39 @@ const ProductInfo = () => {
               }
             })
           });
+
+          // Obtener supermercados donde existe el producto base
+          const productName = productResponse.data.name;
+          const storesRes = await axios.get(
+            `http://localhost:8080/api/v1/store-products/by-product-name?name=${encodeURIComponent(productName)}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          console.log('Respuesta de store-products/by-product-name:', storesRes.data);
+          // Enriquecer con nombre de tienda
+          const storesWithNames = await Promise.all(
+            storesRes.data.map(async (sp: { id: string; price: number; storeId: string }) => {
+              const storeRes = await axios.get(
+                `http://localhost:8080/api/v1/stores/${sp.storeId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              return {
+                id: sp.id,
+                price: sp.price,
+                storeId: sp.storeId,
+                storeName: storeRes.data.name,
+              };
+            })
+          );
+          console.log('Supermercados enriquecidos:', storesWithNames);
+          setAvailableStores(storesWithNames);
         }
       } catch (error) {
-        console.error(error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          setAddError("Tu sesión ha expirado o no tienes permisos. Inicia sesión de nuevo.");
+        } else {
+          setAddError("Ocurrió un error al cargar la información del producto.");
+        }
+        console.error("Error al cargar datos:", error);
       } finally {
         setLoading(false);
       }
@@ -117,6 +159,7 @@ const ProductInfo = () => {
 
   if (loading) return <div className="p-8">Cargando...</div>;
   if (!product) return <div className="p-8">Producto no encontrado.</div>;
+  if (!token) return <div className="p-8">Debes iniciar sesión para ver esta información.</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-4 mt-24">
@@ -180,6 +223,19 @@ const ProductInfo = () => {
               </Button>
             </Link>
           </div>
+
+          {availableStores.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">Disponible en supermercados:</h3>
+              <ul className="list-disc ml-6">
+                {availableStores.map((sp) => (
+                  <li key={sp.id}>
+                    {sp.storeName} <span className="text-gray-500">(Precio: ${sp.price.toFixed(2)})</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -59,9 +59,9 @@ public class OfferEventProcessorConsumer {
                     offerEvent.getProductName(), offerEvent.getOfferPrice());
 
 
-            String linkToOffer = String.format("/stores/%s/products/%s/offer-details", // Ejemplo de
+            String linkToOffer = String.format("/stores/%s/products/%s", // Ejemplo de
                                                                                        // link
-                    offerEvent.getStoreId(), offerEvent.getProductId());
+                    offerEvent.getStoreId(), offerEvent.getStoreProductId());
 
             try {
                 userNotificationService.createNotification(user.getId(), notificationMessage,

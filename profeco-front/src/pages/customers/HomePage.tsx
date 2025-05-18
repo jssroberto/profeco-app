@@ -4,6 +4,7 @@ import PopularSupermarkets from "../../components/PopularSupermarkets";
 import { useCustomer } from "../../context/CustomerContext";
 import FavoriteSupermarkets from "../../components/FavoriteSupermarkets";
 import ShoppingList from "../../components/ShoppingList";
+import CustomerNotifications from "../../components/CustomerNotifications";
 
 const HomePage: React.FC = () => {
   const { customer } = useCustomer();
@@ -76,6 +77,17 @@ const HomePage: React.FC = () => {
             <h2 className="text-2xl font-bold text-[#681837] tracking-tight">Supermercados Populares</h2>
           </div>
           <PopularSupermarkets />
+        </div>
+
+        {/* Sección de notificaciones */}
+        <div className="bg-white/90 rounded-3xl p-8 shadow-xl mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#681837" className="w-7 h-7">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12.75h16.5M3.75 12.75c0-4.125 3.375-7.5 7.5-7.5S18.75 8.625 18.75 12.75M3.75 12.75c0 4.125 3.375 7.5 7.5 7.5S18.75 16.875 18.75 12.75" />
+            </svg>
+            <h2 className="text-2xl font-bold text-[#681837] tracking-tight">Notificaciones</h2>
+          </div>
+          <CustomerNotifications />
         </div>
       </div>
     </div>
