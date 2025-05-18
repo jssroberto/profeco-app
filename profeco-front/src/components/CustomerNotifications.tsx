@@ -52,15 +52,12 @@ const CustomerNotifications = () => {
 
   const fetchNotifications = useCallback(async () => {
     if (!token) return;
-    
     try {
       const res = await axios.get(
         `http://localhost:8080/api/me/notifications/active`,
         apiHeaders
       );
-      
       setNotifications(res.data);
-      // Mostrar todas las notificaciones por defecto
       const visibilityMap: Record<string, boolean> = {};
       res.data.forEach((n: Notification) => (visibilityMap[n.id] = true));
       setVisible(visibilityMap);
@@ -69,10 +66,8 @@ const CustomerNotifications = () => {
     }
   }, [token, apiHeaders]);
 
-  // Update the endpoint for fetching all notifications
   const fetchAllNotifications = useCallback(async () => {
     if (!token) return;
-
     try {
       const res = await axios.get(
         `http://localhost:8080/api/me/notifications`,
@@ -86,25 +81,43 @@ const CustomerNotifications = () => {
 
   useEffect(() => {
     if (!token) return;
-    
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 10000);
     return () => clearInterval(interval);
-  }, [fetchNotifications, token]);
-
-  const markAsRead = useCallback(async (id: string) => {
+  }, [fetchNotifications, token]);  const markAsRead = useCallback(async (id: string) => {
+    if (!token) {
+      console.error('No hay token disponible');
+      return;
+    }
     try {
-      await axios.patch(
-        `${NOTIFICATION_API_BASE}/${id}/read`,
-        {},
-        apiHeaders
+      const response = await axios.put<Notification>(
+        `http://localhost:8080/api/me/notifications/${id}/read`,
+        null,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
-      fetchNotifications();
+
+      const updatedNotification = response.data;
+      
+      // Actualizar inmediatamente el estado local usando la respuesta del servidor
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      setAllNotifications(prev => 
+        prev.map(n => n.id === id ? updatedNotification : n)
+      );
+      
+      // Refetch para asegurar sincronización con el servidor
+      await Promise.all([
+        fetchNotifications(),
+        fetchAllNotifications()
+      ]);
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
-  }, [apiHeaders, fetchNotifications]);
-
+  }, [token, fetchNotifications, fetchAllNotifications]);
   const handleClose = useCallback(async (id: string) => {
     setVisible(prev => ({ ...prev, [id]: false }));
     await markAsRead(id);
@@ -117,7 +130,6 @@ const CustomerNotifications = () => {
 
     if (!link) return;
 
-    // Links internos
     if (link.startsWith("/")) {
       const match = link.match(/\/([\w-]+)\/products\/([\w-]+)/);
       if (match) {
@@ -126,9 +138,7 @@ const CustomerNotifications = () => {
         return;
       }
       navigate(link);
-    } 
-    // Links externos (con validación básica)
-    else if (/^https?:\/\//.test(link)) {
+    } else if (/^https?:\/\//.test(link)) {
       window.open(link, "_blank", "noopener,noreferrer");
     }
   }, [markAsRead, navigate]);
@@ -265,7 +275,7 @@ const CustomerNotifications = () => {
                   </div>
                 </div>
               ))
-            )}
+           ) }
           </div>
         </div>
       )}
