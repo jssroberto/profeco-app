@@ -12,4 +12,6 @@ public interface InconsistencyRepository extends JpaRepository<Inconsistency, UU
     List<Inconsistency> findByStoreProductId(UUID storeProductId);
 
     List<Inconsistency> findByStoreProductStoreId(UUID storeId);
+
+    Integer countByStoreProductStoreId(UUID storeId);
 }

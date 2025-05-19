@@ -1,14 +1,56 @@
 // AdminDashboard.tsx
-import { MessageSquare, AlarmClock, Tags, Bell } from "lucide-react";
+import { AlarmClock, Bell, MessageSquare, Tags } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/axiosConfig";
+import { useAuth } from "../../context/AuthContext";
 import { useStoreAdmin } from "../../context/StoreAdminContext";
+
+// Added ApiError interface (assuming it's similar to AdminPrecios.tsx)
+interface ApiError {
+  message: string;
+}
 
 const StoreAdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-
   const { admin, store } = useStoreAdmin();
+  const { token } = useAuth(); // Added token from useAuth
+
+  // State for inconsistency count
+  const [inconsistencyCount, setInconsistencyCount] = useState<number | null>(null);
+  const [loadingCount, setLoadingCount] = useState<boolean>(true);
+  const [countError, setCountError] = useState<string | null>(null);
   
   console.log(store?.id);
+
+  const fetchInconsistencyCount = useCallback(async () => {
+    if (!token) { // Store ID is not used in the provided API endpoint
+      setLoadingCount(false);
+      setInconsistencyCount(0); 
+      setCountError("Usuario no autenticado para cargar el contador.");
+      return;
+    }
+    setLoadingCount(true);
+    setCountError(null);
+    try {
+      const response = await api.get<number>(
+        '/store-admin/inconsistencies/count', // Using the endpoint from user prompt
+        { headers: { Authorization: `Bearer ${token}` } } // Assuming Bearer token auth
+      );
+      setInconsistencyCount(response.data);
+    } catch (error) {
+      console.error("Error fetching inconsistency count:", error);
+      const errorMessage = (error as { response?: { data?: ApiError }; message?: string })?.response?.data?.message || (error as Error)?.message || "Error al cargar el contador de inconsistencias";
+      setCountError(errorMessage);
+      setInconsistencyCount(null);
+    } finally {
+      setLoadingCount(false);
+    }
+  }, [token]); // Dependency on token
+
+  useEffect(() => {
+    fetchInconsistencyCount();
+  }, [fetchInconsistencyCount]); // fetchInconsistencyCount will change if token changes
 
   const cards = [
     {
@@ -54,9 +96,18 @@ const StoreAdminDashboard: React.FC = () => {
       <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 shadow-md flex justify-between items-center">
         <div>
           <h2 className="text-orange-600 font-semibold">Notificaciones</h2>
-          <p className="text-sm text-gray-700">
-            3 inconsistencias reportadas por consumidores requieren revisión
-          </p>
+          {loadingCount && <p className="text-sm text-gray-700">Cargando inconsistencias...</p>}
+          {countError && <p className="text-sm text-red-500">{countError}</p>}
+          {!loadingCount && inconsistencyCount !== null && (
+            <p className="text-sm text-gray-700">
+              {inconsistencyCount > 0
+                ? `${inconsistencyCount} inconsistencia${inconsistencyCount === 1 ? '' : 's'} reportada${inconsistencyCount === 1 ? '' : 's'} por consumidores requieren revisión`
+                : "No hay inconsistencias reportadas."}
+            </p>
+          )}
+          {!loadingCount && inconsistencyCount === null && !countError && (
+             <p className="text-sm text-gray-700">No se pudo cargar el número de inconsistencias.</p>
+          )}
         </div>
         <button
           onClick={() => navigate("/inconsistencias")}

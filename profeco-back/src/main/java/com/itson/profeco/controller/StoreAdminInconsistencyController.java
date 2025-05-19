@@ -40,4 +40,10 @@ public class StoreAdminInconsistencyController {
             @PathVariable UUID inconsistencyId) {
         return ResponseEntity.ok(inconsistencyService.getInconsistencyById(inconsistencyId));
     }
+
+    @GetMapping("/count")
+    @Operation(summary = "Get the count of inconsistencies related to the current store admin's store")
+    public ResponseEntity<Integer> getInconsistencyCountByCurrentStoreAdmin() {
+        return ResponseEntity.ok(inconsistencyService.getInconsistencyCountByCurrentStoreAdmin());
+    } 
 }

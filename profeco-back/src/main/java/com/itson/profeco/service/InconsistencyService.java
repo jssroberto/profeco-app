@@ -160,4 +160,15 @@ public class InconsistencyService {
         inconsistencyRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
+    public Integer getInconsistencyCountByCurrentStoreAdmin() {
+        StoreAdminResponse currentStoreAdmin = storeAdminService.getCurrentStoreAdmin();
+        if (currentStoreAdmin == null || currentStoreAdmin.getStoreId() == null) {
+            throw new IllegalStateException(
+                    "Authenticated store admin must be associated with a store.");
+        }
+        UUID storeId = currentStoreAdmin.getStoreId();
+        return inconsistencyRepository.countByStoreProductStoreId(storeId);
+    }
+
 }
