@@ -209,8 +209,7 @@ INSERT INTO
         offer_start_date,
         offer_end_date,
         product_id,
-        store_id,
-        inconsistency_id
+        store_id
     )
 VALUES
     (
@@ -220,8 +219,7 @@ VALUES
         '2025-05-10',
         '2025-05-20',
         'd4ea0c57-3241-406c-a043-54ba1c2d0001', -- Leche Entera 1L
-        'f1a2b3c4-d5e6-5555-6666-777000000001',
-        NULL
+        'f1a2b3c4-d5e6-5555-6666-777000000001'
     ),
     (
         'e5fb1d68-4352-417d-b154-65cb2d3e0002',
@@ -230,8 +228,7 @@ VALUES
         NULL,
         NULL,
         'd4ea0c57-3241-406c-a043-54ba1c2d0002', -- Coca-Cola 600ml
-        'f1a2b3c4-d5e6-5555-6666-777000000001',
-        NULL
+        'f1a2b3c4-d5e6-5555-6666-777000000001'
     ),
     (
         'e5fb1d68-4352-417d-b154-65cb2d3e0003',
@@ -240,8 +237,7 @@ VALUES
         '2025-05-15',
         '2025-05-25',
         'd4ea0c57-3241-406c-a043-54ba1c2d0003', -- Sabritas Original 170g
-        'f1a2b3c4-d5e6-5555-6666-777000000002',
-        NULL
+        'f1a2b3c4-d5e6-5555-6666-777000000002'
     ),
     (
         'e5fb1d68-4352-417d-b154-65cb2d3e0004',
@@ -250,8 +246,7 @@ VALUES
         NULL,
         NULL,
         'd4ea0c57-3241-406c-a043-54ba1c2d0004', -- Pan Blanco Bimbo
-        'f1a2b3c4-d5e6-5555-6666-777000000001',
-        NULL
+        'f1a2b3c4-d5e6-5555-6666-777000000001'
     ),
     (
         'e5fb1d68-4352-417d-b154-65cb2d3e0005',
@@ -260,8 +255,7 @@ VALUES
         '2025-05-01',
         '2025-05-30',
         'd4ea0c57-3241-406c-a043-54ba1c2d0002', -- Coca-Cola 600ml
-        'f1a2b3c4-d5e6-5555-6666-777000000002',
-        NULL
+        'f1a2b3c4-d5e6-5555-6666-777000000002'
     );
 
 -- Inconsistencies
@@ -424,4 +418,67 @@ VALUES
         TRUE,
         'a1b2c3d4-e5f6-7777-8888-999000000002',
         'b1c2d3e4-f5a6-1111-2222-333000000002'
+    ),
+    (
+        '5b5173cd-a9b8-47d3-17ba-cb2183940004',
+        encode(sha256(random()::text::bytea), 'hex'),
+        '2025-05-10 00:00:00',
+        '2025-06-10 00:00:00',
+        FALSE,
+        'a1b2c3d4-e5f6-7777-8888-999000000003', -- PROFECO_ADMIN
+        NULL
+    ),
+    (
+        '5b5173cd-a9b8-47d3-17ba-cb2183940005',
+        encode(sha256(random()::text::bytea), 'hex'),
+        '2025-05-11 00:00:00',
+        '2025-06-11 00:00:00',
+        FALSE,
+        'a1b2c3d4-e5f6-7777-8888-999000000002', -- STORE_ADMIN
+        NULL
+    ),
+    (
+        '5b5173cd-a9b8-47d3-17ba-cb2183940006',
+        encode(sha256(random()::text::bytea), 'hex'),
+        '2025-03-15 00:00:00',
+        '2025-04-15 00:00:00',
+        TRUE,
+        'a1b2c3d4-e5f6-7777-8888-999000000003', -- PROFECO_ADMIN
+        'b1c2d3e4-f5a6-1111-2222-333000000003'  -- profecoadmin1
+    ),
+    (
+        '5b5173cd-a9b8-47d3-17ba-cb2183940007',
+        encode(sha256(random()::text::bytea), 'hex'),
+        '2025-05-20 00:00:00',
+        '2025-06-20 00:00:00',
+        FALSE,
+        'a1b2c3d4-e5f6-7777-8888-999000000002', -- STORE_ADMIN
+        NULL
+    ),
+    (
+        '5b5173cd-a9b8-47d3-17ba-cb2183940008',
+        encode(sha256(random()::text::bytea), 'hex'),
+        '2025-05-21 00:00:00',
+        '2025-06-21 00:00:00',
+        FALSE,
+        'a1b2c3d4-e5f6-7777-8888-999000000003', -- PROFECO_ADMIN
+        NULL
+    ),
+    (
+        '5b5173cd-a9b8-47d3-17ba-cb2183940009',
+        encode(sha256(random()::text::bytea), 'hex'),
+        '2025-02-01 00:00:00',
+        '2025-03-01 00:00:00',
+        TRUE,
+        'a1b2c3d4-e5f6-7777-8888-999000000002', -- STORE_ADMIN
+        'b1c2d3e4-f5a6-1111-2222-333000000002'  -- storeadmin1
+    ),
+    (
+        '5b5173cd-a9b8-47d3-17ba-cb2183940010',
+        encode(sha256(random()::text::bytea), 'hex'),
+        '2025-05-25 00:00:00',
+        '2025-06-25 00:00:00',
+        FALSE,
+        'a1b2c3d4-e5f6-7777-8888-999000000002', -- STORE_ADMIN
+        NULL
     );

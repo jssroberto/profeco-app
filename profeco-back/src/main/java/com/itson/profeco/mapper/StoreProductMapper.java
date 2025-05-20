@@ -43,7 +43,6 @@ public interface StoreProductMapper {
     @Mapping(target = "product", ignore = true)
     void updateEntityFromProductRequest(@MappingTarget StoreProduct entity, StoreProductRequest request);
 
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "price", ignore = true)
     @Mapping(target = "store", ignore = true)

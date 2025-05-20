@@ -42,8 +42,10 @@ public class StoreAdminInconsistencyController {
     }
 
     @GetMapping("/count")
-    @Operation(summary = "Get the count of inconsistencies related to the current store admin's store")
+    @Operation(
+            summary = "Get the count of inconsistencies related to the current store admin's store")
     public ResponseEntity<Integer> getInconsistencyCountByCurrentStoreAdmin() {
         return ResponseEntity.ok(inconsistencyService.getInconsistencyCountByCurrentStoreAdmin());
-    } 
+    }
+    
 }

@@ -65,6 +65,7 @@ public class AuthController {
 
         return ResponseEntity.ok(buildAuthResponse(customUserDetails));
     }
+    
 
     @Operation(summary = "Register a new customer",
             description = "Registers a new customer and returns a JWT and user info.",

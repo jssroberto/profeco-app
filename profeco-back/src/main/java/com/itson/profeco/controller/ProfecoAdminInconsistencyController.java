@@ -39,6 +39,7 @@ public class ProfecoAdminInconsistencyController {
                 inconsistencyService.getAllInconsistenciesForProfecoAdmin();
         return ResponseEntity.ok(inconsistencyResponses);
     }
+    
 
     @GetMapping("/{inconsistencyId}")
     @Operation(summary = "Get a specific inconsistency by ID")
